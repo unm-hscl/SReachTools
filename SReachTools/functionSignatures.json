@@ -1,0 +1,75 @@
+{
+  "_schemaVersion": "1.0.0",
+  "SReachForward":
+  {
+     "inputs":
+     [
+        {
+          "name": "problem",
+          "kind": "required",
+          "type": ["srt.problems.Problem"],
+          "purpose": "Stochastic reachability problem."
+        },
+        {
+          "name": "alg",
+          "kind": "required",
+          "type": ["srt.algorithms.Algorithm"],
+          "purpose": "Solver algorithm."
+        },
+        {
+          "name": "sys",
+          "kind": "ordered",
+          "type": ["srt.systems.System"],
+          "purpose": "Stochastic system object."
+        }
+     ]
+  },
+  "SReachPoint":
+  {
+     "inputs":
+     [
+        {
+          "name": "problem",
+          "kind": "required",
+          "type": ["srt.problems.Problem"],
+          "purpose": "Stochastic reachability problem."
+        },
+        {
+          "name": "alg",
+          "kind": "required",
+          "type": ["srt.algorithms.Algorithm"],
+          "purpose": "Solver algorithm."
+        },
+        {
+          "name": "sys",
+          "kind": "ordered",
+          "type": ["srt.systems.System"],
+          "purpose": "Stochastic system object."
+        }
+     ]
+  },
+  "SReachSet":
+  {
+     "inputs":
+     [
+        {
+          "name": "problem",
+          "kind": "required",
+          "type": ["srt.problems.Problem"],
+          "purpose": "Stochastic reachability problem."
+        },
+        {
+          "name": "alg",
+          "kind": "required",
+          "type": ["srt.algorithms.Algorithm"],
+          "purpose": "Solver algorithm."
+        },
+        {
+          "name": "sys",
+          "kind": "ordered",
+          "type": ["srt.systems.System"],
+          "purpose": "Stochastic system object."
+        }
+     ]
+  }
+}

@@ -1,4 +1,7 @@
 function varargout = SReachSet(problem, alg, sys, varargin)
+% SREACHSET Stochastic reachability.
+%
+%   SREACHSET(...) stochastic reachability for a set.
 
 p = inputParser;
 

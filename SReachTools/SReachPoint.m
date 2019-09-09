@@ -1,4 +1,7 @@
 function varargout = SReachPoint(problem, alg, sys, varargin)
+% SREACHPOINT Stochastic reachability.
+%
+%   SREACHPOINT(...) stochastic reachability for a point.
 
 p = inputParser;
 

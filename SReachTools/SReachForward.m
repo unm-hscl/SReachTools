@@ -1,4 +1,7 @@
 function varargout = SReachForward(problem, alg, sys, varargin)
+% SREACHFORWARD Stochastic reachability.
+%
+%   SREACHFORWARD(...) forward stochastic reachability.
 
 p = inputParser;
 
