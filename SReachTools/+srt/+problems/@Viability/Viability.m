@@ -6,22 +6,22 @@ classdef Viability < Problem
 %
 %   See also: FirstHitting, MaximalHitting, TerminalHitting
 
-  methods
-    function obj = Viability(N, K, varargin)
-      p = inputParser;
-      addRequired(p, 'N');
-      addRequired(p, 'K');
-      parse(p, N, K, varargin{:});
+    methods
+        function obj = Viability(N, K, varargin)
+            p = inputParser;
+            addRequired(p, 'N');
+            addRequired(p, 'K');
+            parse(p, N, K, varargin{:});
 
-      obj.time_horizon_ = N;
-      obj.safe_set_ = K;
+            obj.time_horizon_ = N;
+            obj.safe_set_ = K;
+        end
     end
-  end
 
-  methods
-    function tf = contains(obj, k, varargin)
-      tf = ~obj.in_safe_set(varargin{:});
+    methods
+        function tf = contains(obj, k, varargin)
+            tf = ~obj.in_safe_set(varargin{:});
+        end
     end
-  end
 
 end
