@@ -1,4 +1,4 @@
-function varargout = SReachSet(problem, alg, sys, varargin)
+function varargout = SReachSet(prb, alg, sys, varargin)
 % SREACHSET Stochastic reachability.
 %
 %   SREACHSET(...) stochastic reachability for a set.
@@ -17,13 +17,13 @@ p = inputParser;
 
 valprob = @(arg) validateattributes(arg, {'Problem'}, {'nonempty'});
 valalg  = @(arg) validateattributes(arg, {'Algorithm'}, {'nonempty'});
+valsys  = @(arg) validateattributes(arg, {'StochasticSystem'}, {'nonempty'});
 
-addRequired(p, 'problem', valprob);
+addRequired(p, 'prb', valprob);
 addRequired(p, 'alg', valalg);
-addRequired(p, 'sys', validatesystem(sys));
-parse(p, problem, alg, sys);
+addRequired(p, 'sys', valsys);
+parse(p, prb, alg, sys);
 
-alg.validatearguments(problem, sys);
-alg.compute_set(problem, sys, varargin{:});
+alg.compute_set(prb, sys, varargin{:});
 
 end

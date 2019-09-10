@@ -1,10 +1,27 @@
 classdef (Abstract) Algorithm < handle
 % ALGORITHM Defines the interface for an algorithm.
+%
+%   Copyright 2019 Adam Thorpe
 
-    methods (Abstract)
-        validate_dependencies(obj)
-        validate_problem(obj, problem)
-        validate_system(obj, sys)
+    methods
+        function obj = Algorithm(varargin)
+            % ALGORITHM Construct an instance of the algorithm.
+
+            % Validate algorithm dependencies.
+            obj.validatedependencies();
+        end
+    end
+
+    methods (Hidden, Access = protected)
+        function validatedependencies(obj)
+            % VALIDATEDEPENDENCIES Validate dependencies.
+        end
+        function validateproblem(obj, prob)
+            % VALIDATEPROBLEM Validate problem.
+        end
+        function validatesystem(obj, sys)
+            % VALIDATESYSTEM Validate system.
+        end
     end
 
     methods
@@ -21,13 +38,6 @@ classdef (Abstract) Algorithm < handle
         function result = compute_fwd(obj, varargin)
             % COMPUTE_FWD Template method for algorithm.
             warning('compute_fwd not implemented for %s.', class(obj));
-        end
-    end
-
-    methods (Sealed)
-        function validatearguments(varargin)
-            % assert(problem.SafeSet.Dim == system.Dim);
-            % assert(problem.TargetSet.Dim == system.Dim);
         end
     end
 

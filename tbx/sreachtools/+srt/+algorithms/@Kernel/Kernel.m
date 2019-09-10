@@ -1,5 +1,7 @@
 classdef Kernel < Algorithm
 % Kernel Kernel distribution embeddings.
+%
+%   Copyright 2019 Adam Thorpe
 
     properties (Access = private)
         % N State space dimensionality.

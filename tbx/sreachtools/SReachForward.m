@@ -1,4 +1,4 @@
-function varargout = SReachForward(problem, alg, sys, varargin)
+function varargout = SReachForward(prb, alg, sys, varargin)
 % SREACHFORWARD Forward stochastic reachability.
 %
 %   SREACHFORWARD(...) forward stochastic reachability.
@@ -17,13 +17,13 @@ p = inputParser;
 
 valprob = @(arg) validateattributes(arg, {'Problem'}, {'nonempty'});
 valalg  = @(arg) validateattributes(arg, {'Algorithm'}, {'nonempty'});
+valsys  = @(arg) validateattributes(arg, {'StochasticSystem'}, {'nonempty'});
 
-addRequired(p, 'problem', valprob);
+addRequired(p, 'prb', valprob);
 addRequired(p, 'alg', valalg);
-addRequired(p, 'sys', validatesystem(sys));
-parse(p, problem, alg, sys);
+addRequired(p, 'sys', valsys);
+parse(p, prb, alg, sys);
 
-alg.validatearguments(problem, sys);
-alg.compute_fwd(problem, sys, varargin{:});
+alg.compute_fwd(prb, sys, varargin{:});
 
 end
