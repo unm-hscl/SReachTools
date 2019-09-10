@@ -1,4 +1,4 @@
-classdef System
+classdef StochasticSystem
 
 
 end
