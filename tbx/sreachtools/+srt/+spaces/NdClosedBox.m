@@ -9,9 +9,23 @@ classdef NdClosedBox < srt.spaces.Base
     methods
         function obj = NdClosedBox(lb, ub)
             obj@srt.spaces.Base();
+
+            validateattributes(lb, {'numeric'}, {'vector', 'real'})
+            validateattributes(ub, {'numeric'}, {'vector', 'real'})
+
             obj.n  = length(lb);
-            obj.lb = lb;
-            obj.ub = ub;
+
+            if size(lb, 2) > 1
+                obj.lb = lb';
+            else
+                obj.lb = lb;
+            end
+
+            if size(ub, 2) > 1
+                obj.ub = ub';
+            else
+                obj.ub = ub;
+            end
         end
 
         function bl = contains(obj, v)
@@ -66,6 +80,11 @@ classdef NdClosedBox < srt.spaces.Base
 
         function yn = isclosed(obj)
             yn = true;
+        end
+
+        function sp = concat(obj, time_horizon)
+            sp = srt.spaces.NdClosedBox(kron(ones(time_horizon, 1), lb), ...
+                kron(ones(time_horizon, 1), ub));
         end
     end
 end

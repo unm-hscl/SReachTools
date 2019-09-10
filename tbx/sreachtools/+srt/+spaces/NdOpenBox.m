@@ -57,5 +57,10 @@ classdef NdOpenBox < srt.spaces.NdClosedBox
         function yn = isclosed(obj)
             yn = true;
         end
+
+        function sp = concat(obj, time_horizon)
+            sp = srt.spaces.NdOpenBox(kron(ones(time_horizon, 1), lb), ...
+                kron(ones(time_horizon, 1), ub));
+        end
     end
 end
