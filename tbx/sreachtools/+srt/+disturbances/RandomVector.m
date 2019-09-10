@@ -1,0 +1,2 @@
+classdef RandomVector
+end
