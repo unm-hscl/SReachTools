@@ -1,2 +1,2 @@
-function tf = validatetargettube(sys, varargin)
+function validatetargettube(sys, varargin)
 % VALIDATETARGETTUBE Validate target tube object.

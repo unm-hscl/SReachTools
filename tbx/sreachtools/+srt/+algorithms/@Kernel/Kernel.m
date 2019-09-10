@@ -1,5 +1,5 @@
-classdef KReach < Algorithm
-% KReach Kernel distribution embeddings.
+classdef Kernel < Algorithm
+% Kernel Kernel distribution embeddings.
 
     properties (Access = private)
         % N State space dimensionality.
@@ -34,7 +34,7 @@ classdef KReach < Algorithm
     properties (Hidden, Dependent)
         % X State samples.
         %
-        %   If you pass samples into KReach manually, make sure they are in
+        %   If you pass samples into Kernel manually, make sure they are in
         %   column format and that the matrix has the dimensions [nxM], where n
         %   is the dimensionality of the state and M is the number of samples:
         %
@@ -45,7 +45,7 @@ classdef KReach < Algorithm
 
         % U Input samples.
         %
-        %   If you pass samples into KReach manually, make sure they are in
+        %   If you pass samples into Kernel manually, make sure they are in
         %   column format and that the matrix has the dimensions [mxM], where m
         %   is the dimensionality of the input and M is the number of samples:
         %
@@ -56,7 +56,7 @@ classdef KReach < Algorithm
 
         % W Disturbance samples.
         %
-        %   If you pass samples into KReach manually, make sure they are in
+        %   If you pass samples into Kernel manually, make sure they are in
         %   column format and that the matrix has the dimensions [pxM], where p
         %   is the dimensionality of the disturbance and M is the number of
         %   samples:
@@ -68,7 +68,7 @@ classdef KReach < Algorithm
 
         % Y Output samples.
         %
-        %   If you pass samples into KReach manually, make sure they are in
+        %   If you pass samples into Kernel manually, make sure they are in
         %   column format and that the matrix has the dimensions [nxM], where n
         %   is the dimensionality of the state and M is the number of samples:
         %
@@ -86,7 +86,7 @@ classdef KReach < Algorithm
     end
 
     methods
-    function obj = KReach(varargin)
+    function obj = Kernel(varargin)
 
         p = inputParser;
         if isa(varargin{1}, 'SampleGenerator');
@@ -150,12 +150,12 @@ classdef KReach < Algorithm
 
         function cxx = compute_autocovariance(x, sigma)
             % COMPUTE_AUTOCOVARIANCECOMPUTE Compute autocovariance matrix.
-            cxx = KReach.compute_norm(x);
+            cxx = Kernel.compute_norm(x);
             cxx = exp(-cxx/(2*sigma^2));
         end
         function cxy = compute_cross_covariance(x, y, sigma)
             % COMPUTE_CROSS_COVARIANCE Compute cross-covariance matrix.
-            cxy = KReach.compute_norm_cross(x, y);
+            cxy = Kernel.compute_norm_cross(x, y);
             cxy = exp(-cxy/(2*sigma^2));
         end
     end

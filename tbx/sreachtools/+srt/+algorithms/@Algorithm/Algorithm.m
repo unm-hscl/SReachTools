@@ -25,7 +25,7 @@ classdef (Abstract) Algorithm < handle
     end
 
     methods (Sealed)
-        function validate_arguments(varargin)
+        function validatearguments(varargin)
             % assert(problem.SafeSet.Dim == system.Dim);
             % assert(problem.TargetSet.Dim == system.Dim);
         end
