@@ -8,10 +8,10 @@
    <demosection>
       <label>examples</label>
       <demoitem>
-         <label>cwhSReachFwd</label>
+         <label>tht_kreach_dint</label>
          <type>other</type>
-         <source>cwhSReachFwd</source>
-         <file>doc/examples/html/cwhSReachFwd.html</file>
+         <source>tht_kreach_dint</source>
+         <file>examples/html/tht_kreach_dint.html</file>
       </demoitem>
    </demosection>
 </demos>

@@ -1,5 +1,3 @@
-%% SReachPoint
-% Stochastic reachability for a point.
+%% SReachForward
+% Forward stochastic reachability.
 %
-%% Description
-% 

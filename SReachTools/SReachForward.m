@@ -2,6 +2,16 @@ function varargout = SReachForward(problem, alg, sys, varargin)
 % SREACHFORWARD Stochastic reachability.
 %
 %   SREACHFORWARD(...) forward stochastic reachability.
+%
+%   Example:
+%       prob = srk.problems.FirstHittingTime();
+%       alg = srk.algorithms.DynamicProgramming();
+%       sys = srk.systems.StochasticLTISystem();
+%       SReachForward(prob, alg, sys);
+%
+%   See also: SReachPoint, SReachSet
+%
+%   Copyright 2019 Adam Thorpe
 
 p = inputParser;
 

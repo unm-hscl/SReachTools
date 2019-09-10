@@ -2,6 +2,16 @@ function varargout = SReachSet(problem, alg, sys, varargin)
 % SREACHSET Stochastic reachability.
 %
 %   SREACHSET(...) stochastic reachability for a set.
+%
+%   Example:
+%       prob = srk.problems.FirstHittingTime();
+%       alg = srk.algorithms.DynamicProgramming();
+%       sys = srk.systems.StochasticLTISystem();
+%       SReachSet(prob, alg, sys);
+%
+%   See also: SReachForward, SReachPoint
+%
+%   Copyright 2019 Adam Thorpe
 
 p = inputParser;
 
