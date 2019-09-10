@@ -1,4 +1,4 @@
-classdef LtvSystem
+classdef LtvSystem < StochasticSystem
 % Create a discrete-time LTV system object
 % ============================================================================
 %
@@ -22,7 +22,7 @@ classdef LtvSystem
 %                  'InputSpace', Polyhedron('lb', -1, 'ub', 1), ...
 %                  'DisturbanceMatrix', [T^2/2;T], ...
 %                  'Disturbance', Polyhedron('lb', -1, 'ub', 1));
-%   
+%
 % ============================================================================
 %
 % LtvSystem Properties:
@@ -31,11 +31,11 @@ classdef LtvSystem
 %   input_mat       - Input matrix (Matrix, state_dim x input_dim)
 %   input_space     - Input space (empty / Polyhedron)
 %   dist_mat        - Disturbance matrix (Matrix, state_dim x dist_dim)
-%   dist            - Disturbance object (empty/Polyhedron/RandomVector)     
-%   state_dim       - State dimension (scalar)   
-%   input_dim       - Input dimension (scalar)  
+%   dist            - Disturbance object (empty/Polyhedron/RandomVector)
+%   state_dim       - State dimension (scalar)
+%   input_dim       - Input dimension (scalar)
 %   dist_dim        - Disturbance dimension (scalar)
-% 
+%
 % LtvSystem Methods:
 % ------------------
 %   LtvSystem/LtvSystem   - Constructor
@@ -44,7 +44,7 @@ classdef LtvSystem
 %                           matrices
 %   islti                 - Get logical value 1 if system is LTI
 %   isltv                 - Get logical value 1 if system is LTV (strictly)
-% 
+%
 % Notes:
 % ------
 % * EXTERNAL DEPENDENCY: Uses MPT3 to define input,robust disturbance space
@@ -60,64 +60,64 @@ classdef LtvSystem
     properties (SetAccess = protected)
         % LTVSystem/state_mat
         % ====================================================================
-        % 
+        %
         % System state matrix
         %   - MATLAB matrix for LTI system
         %   - Anonymous functions for LTV system, maps time index to matrix
-        % 
+        %
         state_mat
 
         % LTVSystem/state_dim
         % ====================================================================
-        % 
+        %
         % Dimension of the state vector
-        % 
+        %
         state_dim
 
         % LTVSystem/input_mat
         % ====================================================================
-        % 
+        %
         % System input matrix
         %   - MATLAB matrix for LTI system
         %   - Anonymous functions for LTV system, maps time index to matrix
-        % 
+        %
         input_mat
 
         % LTVSystem/input_space
         % ====================================================================
-        % 
+        %
         % System input space, polyhedron object
-        % 
+        %
         input_space
 
         % LTVSystem/input_dim
         % ====================================================================
-        % 
+        %
         % Dimension of the input vector
-        % 
+        %
         input_dim
 
         % LTVSystem/dist
         % ====================================================================
-        % 
+        %
         % LTV system disturbance, RandomVector object
-        % 
+        %
         dist
 
         % LTVSystem/dist_mat
         % ====================================================================
-        % 
+        %
         % System disturbance matrix
         %   - MATLAB matrix for LTI system
         %   - Anonymous functions for LTV system, maps time index to matrix
-        % 
+        %
         dist_mat
 
         % LTVSystem/dist_dim
         % ====================================================================
-        % 
+        %
         % Dimension of disturbance vector
-        % 
+        %
         dist_dim
 
     end
@@ -125,9 +125,9 @@ classdef LtvSystem
     properties (Access = private)
         % LTVSystem/sys_type
         % ====================================================================
-        % 
+        %
         % Type of system; either LTI or LTV
-        % 
+        %
         sys_type
     end
 
@@ -136,7 +136,7 @@ classdef LtvSystem
         % Create a discrete-time LTI system object
         % ====================================================================
         %
-        % Constructor method fot the LTV System class. Will create the 
+        % Constructor method fot the LTV System class. Will create the
         % LtvSystem object
         %
         % Usage:
@@ -151,7 +151,7 @@ classdef LtvSystem
         % =====================================================================
         %
         % obj = LtvSystem(Name, Value)
-        % 
+        %
         % Inputs:
         % -------
         %   ------------------------------------------------------------
@@ -162,7 +162,7 @@ classdef LtvSystem
         %   DisturbanceMatrix  | (optional) Numeric matrix
         %   InputSpace         | (optional) Polyhedron or empty
         %   Disturbance        | (optional) Polyhedron or RandomVector or empty
-        % 
+        %
         % Outputs:
         % --------
         %   obj - LtvSystem object
@@ -173,13 +173,13 @@ classdef LtvSystem
         %   or neither of them.
         % * 'DisturbanceMatrix' and 'Disturbance' need to be either defined
         %   together or neither of them.
-        % 
+        %
         % =====================================================================
-        % 
+        %
         %   This function is part of the Stochastic Reachability Toolbox.
         %   License for the use of this function is given in
         %        https://sreachtools.github.io/license/
-        % 
+        %
 
             inpar = inputParser();
             inpar.addParameter('StateMatrix', [], ...
@@ -252,7 +252,7 @@ classdef LtvSystem
                 obj.dist_dim = 0;
             else
                 % Can be only Polyhedron or RandomVector due to input parsing
-                if isa(obj.dist, 'RandomVector') 
+                if isa(obj.dist, 'RandomVector')
                     obj.dist_dim = obj.dist.dim;
                 else
                     obj.dist_dim = obj.dist.Dim;
@@ -290,7 +290,7 @@ classdef LtvSystem
 
 
             %% Input matrix
-            % If not specified then the input matrix should be a 
+            % If not specified then the input matrix should be a
             % obj.state_dim x 0 matrix
             if any(strcmp(inpar.UsingDefaults, 'InputMatrix'))
                 if obj.islti()
@@ -330,7 +330,7 @@ classdef LtvSystem
                 throwAsCaller(exc)
             end
 
-            % check consistency of the input matrix and input space dimension, 
+            % check consistency of the input matrix and input space dimension,
             % i.e. that the input matrix has the same number of columns as the
             % dimension of the input space
             if size(B, 2) ~= obj.input_dim
@@ -344,7 +344,7 @@ classdef LtvSystem
             end
 
             % Disturbance matrix
-            % If not specified then the disturbance matrix should be a 
+            % If not specified then the disturbance matrix should be a
             % obj.state_dim x 0 matrix
             if any(strcmp(inpar.UsingDefaults, 'DisturbanceMatrix'))
                 if obj.islti()
@@ -364,7 +364,7 @@ classdef LtvSystem
                     obj.dist_mat = inpar.Results.DisturbanceMatrix;
                 end
             end
-            
+
             if obj.islti()
                 F = obj.dist_mat;
             else
@@ -384,7 +384,7 @@ classdef LtvSystem
                 throwAsCaller(exc)
             end
 
-            % check consistency of the disturbance matrix and input space dimension, 
+            % check consistency of the disturbance matrix and input space dimension,
             % i.e. that the disturbance matrix has the same number of columns as the
             % dimension of the input space
             if size(F, 2) ~= obj.dist_dim
@@ -413,19 +413,19 @@ classdef LtvSystem
         % obj.property
         % obj.method(args)
         % obj.state_mat(t)
-        % 
+        %
         % Inputs: None
-        % 
+        %
         % Outputs:
         % --------
         %   v - Value from the subsref call
         %
         % =====================================================================
-        % 
+        %
         %   This function is part of the Stochastic Reachability Toolbox.
         %   License for the use of this function is given in
         %        https://sreachtools.github.io/license/
-        % 
+        %
 
             if  length(s) == 2 && ...
                 strcmp(s(1).type, '.') && ...
@@ -461,14 +461,14 @@ classdef LtvSystem
         % Overload of MATLAB internal disp
         % ====================================================================
         %
-        % Overloaded method of MATLAB's internal disp. 
+        % Overloaded method of MATLAB's internal disp.
         %
         % Usage: Overload of internal method
         %
         % =====================================================================
         %
         % disp(obj, Name, Value)
-        % 
+        %
         % Inputs:
         % -------
         %   obj - LtvSystem object
@@ -476,20 +476,20 @@ classdef LtvSystem
         %   Name           | Value
         %   ------------------------------------------------------------
         %   verbose        | true or false
-        % 
+        %
         % Outputs: None
-        % 
+        %
         % Notes:
         % ------
         % * disp function for this class was inspired from MPT3
         %   (http://people.ee.ethz.ch/~mpt/3/)
         %
         % =====================================================================
-        % 
+        %
         %   This function is part of the Stochastic Reachability Toolbox.
         %   License for the use of this function is given in
         %        https://sreachtools.github.io/license/
-        % 
+        %
 
             inpar = inputParser();
             inpar.addParameter('verbose', false, ...
@@ -537,7 +537,7 @@ classdef LtvSystem
         % Get boolean result if system is LTI
         % ====================================================================
         %
-        % Get boolean result if system is LTI. Considered LTI if state_mat, 
+        % Get boolean result if system is LTI. Considered LTI if state_mat,
         % input_mat, and dist_mat are all matrices
         %
         % Usage:
@@ -553,22 +553,22 @@ classdef LtvSystem
         % else
         %   disp('System is not LTI')
         % end
-        % 
+        %
         % =====================================================================
         %
         % yn = obj.islti()
-        % 
+        %
         % Inputs: None
         % Outputs:
         % --------
         %   yn - Logical value of 1 if system is LTI
-        % 
+        %
         % =====================================================================
-        % 
+        %
         %   This function is part of the Stochastic Reachability Toolbox.
         %   License for the use of this function is given in
         %        https://sreachtools.github.io/license/
-        % 
+        %
 
             yn = strcmp(obj.sys_type, 'LTI');
         end
@@ -577,7 +577,7 @@ classdef LtvSystem
         %  Get boolean result if system is LTI
         % ====================================================================
         %
-        % Get boolean result if system is LTI. Considered LTI if state_mat, 
+        % Get boolean result if system is LTI. Considered LTI if state_mat,
         % input_mat, and dist_mat are all matrices
         %
         % Usage:
@@ -593,26 +593,26 @@ classdef LtvSystem
         % else
         %   disp('System is not LTI')
         % end
-        % 
+        %
         % =====================================================================
         %
         % yn = obj.islti()
-        % 
+        %
         % Inputs: None
         % Outputs:
         % --------
         %   yn - Logical value of 1 if system is LTI
-        % 
+        %
         % =====================================================================
-        % 
+        %
         %   This function is part of the Stochastic Reachability Toolbox.
         %   License for the use of this function is given in
         %        https://sreachtools.github.io/license/
-        % 
+        %
 
             yn = strcmp(obj.sys_type, 'LTV');
         end
-        
+
         % Methods that have been defined externally
         [Z, H, G] = getConcatMats(sys, time_horizon);
         [concat_input_space_A, concat_input_space_b] = ...
