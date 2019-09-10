@@ -1,36 +1,120 @@
 function result = compute_point(obj, problem, sys, x0, varargin)
+% Solve the problem of stochastic reachability of a target tube (a lower bound
+% on the maximal reach probability and an affine controller synthesis) using
+% chance-constrained optimization and difference of convex programming
+% =============================================================================
+%
+% SReachPointCcA implements the chance-constrained underapproximation to the
+% problem of stochastic reachability of a target tube to construct an affine
+% controller. This technique is discussed in detail in the paper,
+%
+% A. Vinod and M. Oishi. Affine controller synthesis for stochastic reachability
+% via difference of convex programming. In Proc. Conf. Dec. & Ctrl., 2019.
+% (submitted). https://hscl.unm.edu/affinecontrollersynthesis/
+%
+%    High-level desc.   : Use Boole's inequality, Gaussian random vector,
+%                         hyperbolic constraints-to-second order cone constraint
+%                         reformulation, and piecewise linear approximation of
+%                         the inverse of the standard normal cumulative density
+%                         function to create a second-order cone program-based
+%                         difference-of-convex optimization problem
+%    Controller type    : A history-dependent affine controller that satisfies
+%                         softened input constraints (controller satisfies the
+%                         hard input bounds upto a user-specified probabilistic
+%                         threshold)
+%    Optimality         : Suboptimal affine controller for the
+%                         underapproximation problem due to non-convexity
+%                         established by the difference of convex formulation
+%    Approximation      : Guaranteed underapproximation
+%
+% =============================================================================
+%
+% [lb_stoch_reach, opt_input_vec, opt_input_gain, risk_alloc_state, ...
+%   risk_alloc_input] = SReachPointCcA(sys, initial_state, prb.TargetTube, options)
+%
+% Inputs:
+% -------
+%   sys          - System description (LtvSystem/LtiSystem object)
+%   initial_state- Initial state for which the maximal reach probability must be
+%                  evaluated (A numeric vector of dimension sys.state_dim)
+%   safety_tube  - Collection of (potentially time-varying) safe sets that
+%                  define the safe states (Tube object)
+%   options      - Collection of user-specified options for 'chance-affine'
+%                  (Matlab struct created using SReachPointOptions)
+%
+% Outputs:
+% --------
+%   lb_stoch_reach
+%               - Lower bound on the stochastic reachability of a target tube
+%                 problem computed using chance constraints and
+%                 difference-of-convex techniques. While it is expected to lie
+%                 in [0,1], it is set to -1 in cases where the
+%                 difference-of-convex optimization fails to converge.
+%   opt_input_vec,
+%     opt_input_gain
+%               - Controller U=MW+d for a concatenated input vector
+%                   U = [u_0; u_1; ...; u_{N-1}] and concatenated disturbance
+%                   vector W=[w_0; w_1; ...; w_{N-1}].
+%                   - opt_input_gain: Affine controller gain matrix of dimension
+%                       (sys.input_dim*N) x (sys.dist_dim*N)
+%                   - opt_input_vec: Open-loop controller: column vector
+%                     dimension
+%                       (sys.input_dim*N) x 1
+%   risk_alloc_state
+%               - Risk allocation for the state constraints
+%   risk_alloc_input
+%               - Risk allocation for the input constraints
+%
+% See also SReachPoint.
+%
+% Notes:
+% * We recommend using this function through SReachPoint.
+% * This function requires CVX to work.
+% * This function returns a **lower bound to the maximal reach probability under
+%   hard input constraints**. This lower bound is obtained by a linear
+%   transformation of the maximal reach probability associated with the
+%   unsaturated affine controller using the user-specified likelihood threshold
+%   on the hard input constraints. See Theorem 1 of the paper cited above.
+% * See @LtiSystem/getConcatMats for more information about the notation used.
+%
+% ============================================================================
+%
+% This function is part of the Stochastic Reachability Toolbox.
+% License for the use of this function is given in
+%      https://sreachtools.github.io/license/
+%
+%
 
 p = inputParser;
-addRequired(p, prb, @obj.validateproblem);
-addRequired(p, sys, @obj.validatesystem);
-parse(p, prb, sys);
+addRequired(p, 'prb', @obj.validateproblem);
+addRequired(p, 'sys', @obj.validatesystem);
+addRequired(p, 'x0');
+parse(p, prb, sys, x0);
 
-% Target tubes has polyhedra T_0, T_1, ..., T_{time_horizon}
-time_horizon = length(safety_tube) - 1;
-
-otherInputHandling(sys, options, time_horizon);
+% Target tubes has polyhedra T_0, T_1, ..., T_{N}
+N = prb.TimeHorizon - 1;
 
 % Get half space representation of the target tube and time horizon
 % skipping the first time step
-[concat_safety_tube_A, concat_safety_tube_b] = safety_tube.concat(...
-    [2 time_horizon+1]);
+[concat_safety_tube_A, concat_safety_tube_b] = prb.TargetTube.concat(...
+    [2 N+1]);
 
 %% Halfspace-representation of U^N, H, G,mean_X_sans_input, cov_X_sans_input
 % GUARANTEES: Non-empty input sets (polyhedron)
 [concat_input_space_A, concat_input_space_b] = getConcatInputSpace(sys, ...
-    time_horizon);
+    N);
 % GUARANTEES: Compute the input concat and disturb concat transformations
-[~, H, G] = getConcatMats(sys, time_horizon);
-% GUARANTEES: well-defined initial_state and time_horizon
+[~, H, G] = getConcatMats(sys, N);
+% GUARANTEES: well-defined initial_state and N
 sysnoi = LtvSystem('StateMatrix',sys.state_mat,'DisturbanceMatrix', ...
     sys.dist_mat,'Disturbance',sys.dist);
 X_sans_input_rv_with_init_state = SReachFwd('concat-stoch', sysnoi, ...
-    initial_state, time_horizon);
+    initial_state, N);
 mean_X_zi_with_init_state = X_sans_input_rv_with_init_state.mean();
 mean_X_zi = mean_X_zi_with_init_state(sysnoi.state_dim + 1:end);
 
 %% Concatenation of disturbance vector
-W = sys.dist.concat(time_horizon);
+W = sys.dist.concat(N);
 
 %% Compute M --- the number of polytopic halfspaces to worry about
 n_lin_state = size(concat_safety_tube_A,1);
@@ -76,9 +160,9 @@ while continue_condition == 1
     end
     % The iteration values are updated at the end of the problem
     cvx_begin quiet
-        variable M(sys.input_dim*time_horizon,sys.dist_dim*time_horizon);
-        variable d(sys.input_dim * time_horizon, 1);
-        variable mean_X(sys.state_dim * time_horizon, 1);
+        variable M(sys.input_dim*N,sys.dist_dim*N);
+        variable d(sys.input_dim * N, 1);
+        variable mean_X(sys.state_dim * N, 1);
         % State chance constraint
         variable deltai(n_lin_state, 1) nonnegative;
         variable norminvdeltai(n_lin_state, 1) nonnegative;
@@ -96,7 +180,7 @@ while continue_condition == 1
                                         sum(sum(slack_reverse_input))));
         subject to
             % Causality constraints on M_matrix
-            for time_indx = 1:time_horizon
+            for time_indx = 1:N
                 M((time_indx-1)*sys.input_dim + 1:...
                     time_indx*sys.input_dim, ...
                     (time_indx-1)*sys.dist_dim+1:end) == 0;
@@ -237,7 +321,7 @@ if max(sum_slack_rev_state, sum_slack_rev_input) <= options.dc_conv_tol
 else
     % Tell SReachPoint that no solution was found
     lb_stoch_reach = -1;
-    opt_input_vec = nan(sys.input_dim * time_horizon,1);
+    opt_input_vec = nan(sys.input_dim * N,1);
     opt_input_gain = [];
     risk_alloc_state = nan(n_lin_state,1);
     risk_alloc_input = nan(n_lin_input,1);

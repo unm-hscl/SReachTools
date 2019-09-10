@@ -16,9 +16,11 @@ classdef (Abstract) Algorithm < handle
         function validatedependencies(obj)
             % VALIDATEDEPENDENCIES Validate dependencies.
         end
+
         function validateproblem(obj, prob)
             % VALIDATEPROBLEM Validate problem.
         end
+
         function validatesystem(obj, sys)
             % VALIDATESYSTEM Validate system.
         end

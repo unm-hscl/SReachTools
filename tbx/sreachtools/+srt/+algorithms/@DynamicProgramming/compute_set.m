@@ -1,10 +1,9 @@
-function result = compute_set(obj, problem, sys, varargin)
+function result = compute_set(obj, prb, sys, varargin)
 
-obj.validate_dependencies();
 p = inputParser;
-addRequired(p, 'problem', @obj.validate_problem);
-addRequired(p, 'sys', @obj.validate_system);
-parse(p, problem, sys, varargin{:});
+addRequired(p, 'prb', @obj.validateproblem);
+addRequired(p, 'sys', @obj.validatesystem);
+parse(p, prb, sys, varargin{:});
 
 %% Computation
 % x grid points

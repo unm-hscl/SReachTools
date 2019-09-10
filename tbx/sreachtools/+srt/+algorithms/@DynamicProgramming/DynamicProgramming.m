@@ -18,6 +18,10 @@ classdef DynamicProgramming < Algorithm
 
     methods
         function obj = DynamicProgramming(varargin)
+            % DYNAMICPROGRAMMING Construct an instance of the algorithm.
+
+            % Call the parent constructor.
+            obj = obj@Algorithm(varargin{:});
 
         end
     end

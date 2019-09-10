@@ -7,7 +7,7 @@ classdef ChanceAffine < Algorithm
 
             % Call the parent constructor.
             obj = obj@Algorithm(varargin{:});
-            
+
         end
     end
 

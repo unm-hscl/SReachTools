@@ -1,6 +1,8 @@
 function validatesystem(obj, sys)
 % VALIDATESYSTEM Validate system.
 
+validateattributes(sys, {'LTISystem', 'LTVSystem'}, {'nonempty'});
+
 % Must not be random vector.
 % Must have Gaussian disturbance.
 

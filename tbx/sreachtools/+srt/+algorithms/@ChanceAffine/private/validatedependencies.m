@@ -1,6 +1,6 @@
-function validate_dependencies(obj)
-% VALIDATE_DEPENDENCIES Checks if algorithm dependencies are present/valid.
+function validatedependencies(obj)
+% VALIDATEDEPENDENCIES Checks if algorithm dependencies are present/valid.
 
-% Algorithm has no external dependencies.
+% Requires CVX.
 
 end

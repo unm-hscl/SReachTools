@@ -4,31 +4,21 @@ classdef (Abstract) Problem < handle
     properties (Access = protected)
         time_horizon_(1, 1) double {mustBeInteger, mustBePositive} = 1
 
-        % SAFE_SET_ Safe set must be a scalar.
-        safe_set_(1, :) {mustBeValidSet} = Polyhedron()
-        % TARGET_SET_ Target set must be a scalar.
-        target_set_(1, 1) {mustBeValidSet} = Polyhedron()
+        % TARGET_TUBE_ Target set must be a scalar.
+        target_tube_(1, 1) {mustBeValidSet} = Polyhedron()
     end
 
     properties (Dependent)
         % TIMEHORIZON The time horizon of the problem.
         TimeHorizon
 
-        % SAFESET The safe set.
+        % TARGETTUBE The target tube.
         %
-        %   The SAFESET is the safe set of the system.
-        %   Can be defined as either a Polyhedron, Tube, or as a Function.
+        %   The TARGETTUBE is the target tube for the problem.
+        %   Can be defined as either a Polyhedron, Function, or as a Tube.
         %
-        %   See also: Polyhedron, Function
-        SafeSet
-
-        % TARGETSET The target set.
-        %
-        %   The TARGETSET is the target set of the system.
-        %   Can be defined as either a Polyhedron, Tube, or as a Function.
-        %
-        %   See also: Polyhedron, Function
-        TargetSet
+        %   See also: Polyhedron, Function, Tube
+        TargetTube
     end
 
     methods
@@ -39,40 +29,23 @@ classdef (Abstract) Problem < handle
             obj.time_horizon_ = N;
         end
 
-        function K = get.SafeSet(obj)
-            K = obj.safe_set_;
+        function T = get.TargetTube(obj)
+            T = obj.target_tube_;
         end
-        function set.SafeSet(obj, K)
+        function set.TargetTube(obj, T)
             if isa(K, function_handle)
                 K = Function(K);
             end
-            obj.safe_set_ = K;
-        end
-
-        function T = get.TargetSet(obj)
-            T = obj.target_set_;
-        end
-        function set.TargetSet(obj, T)
-            if isa(K, function_handle)
-                K = Function(K);
-            end
-            obj.target_set_ = T;
+            obj.target_tube_ = T;
         end
     end
 
     methods
-        function tf = in_safe_set(obj, varargin)
-            if isa(obj.safe_set_, 'Function')
-                tf = obj.safe_set_.feval(varargin{:});
+        function tf = in_target_tube(obj, varargin)
+            if isa(obj.target_tube_, 'Function')
+                tf = obj.target_tube_.feval(varargin{:});
             else
-                tf = obj.safe_set_.contains(varargin{:});
-            end
-        end
-        function tf = in_target_set(obj, varargin)
-            if isa(obj.target_set_, 'Function')
-                tf = obj.target_set_.feval(varargin{:});
-            else
-                tf = obj.target_set_.contains(varargin{:});
+                tf = obj.target_tube_.contains(varargin{:});
             end
         end
     end
@@ -84,5 +57,5 @@ classdef (Abstract) Problem < handle
 end
 
 function mustBeValidSet(set)
-    validateattributes(set, {'Polyhedron', 'Function'}, {'nonempty'});
+    validateattributes(set, {'Polyhedron', 'Tube', 'Function'}, {'nonempty'});
 end
