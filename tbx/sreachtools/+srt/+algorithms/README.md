@@ -8,9 +8,9 @@ Use the following directory structure for the algorithm:
 ```
 +algorithms/
 ├── @Algorithm/
-├── @ChanceAffine
+├── @ChanceAffine/
 ├── ...
-└── @YourAlgorithm
+└── @YourAlgorithm/
     ├── private/
     │   ├── validatedependencies.m
     │   ├── validateproblem.m
@@ -33,7 +33,7 @@ An example of a basic algorithm called `YourAlgorithm` is shown below:
 
 ```Matlab
 % Algorithms must inherit from the abstract 'Algorithm' base class.
-classdef YourAlgorithm < Algorithm
+classdef YourAlgorithm < srt.algorithms.Algorithm
 
   properties
     prop1
@@ -44,8 +44,9 @@ classdef YourAlgorithm < Algorithm
       % YOURALGORITHM Construct an instance of the algorithm.
 
       % Call the parent constructor.
-      % This validates the dependencies when the algorithm is declared.
-      obj = obj@Algorithm(varargin{:});
+      % This validates the dependencies when the algorithm is declared and sets
+      % certain properties such as verbosity, etc.
+      obj = obj@srt.algorithms.Algorithm(varargin{:});
 
       p = inputParser;
       addParameter(p, '<name>', <default>, <validation_fn>);
@@ -70,15 +71,15 @@ method, where `x` is one of: `fwd`, `point`, or `set`.
 The function signatures for the compute functions are:
 
 ```Matlab
-function results = compute_fwd(obj, problem, sys, x0, varargin)
+function results = compute_fwd(obj, prb, sys, x0, varargin)
 ```
 
 ```Matlab
-function results = compute_point(obj, problem, sys, x0, varargin)
+function results = compute_point(obj, prb, sys, x0, varargin)
 ```
 
 ```Matlab
-function results = compute_set(obj, problem, sys, varargin)
+function results = compute_set(obj, prb, sys, varargin)
 ```
 
 Do not alter the function signatures when you implement your algorithm. Any

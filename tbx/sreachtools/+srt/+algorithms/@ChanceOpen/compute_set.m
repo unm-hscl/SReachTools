@@ -1,4 +1,4 @@
-function result = compute_set(obj, problem, sys, varargin)
+function results = compute_set(obj, problem, sys, varargin)
 % Compute the stochastic reach set corresponding to the stochastic reachability
 % problem of a target tube using convex chance-constraint optimization
 % =============================================================================

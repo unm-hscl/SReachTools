@@ -1,4 +1,4 @@
-classdef TerminalHitting < Problem
+classdef TerminalHitting < srt.problems.Problem
 % TERMINALHITTING Specifies a terminal-hitting time problem.
 %
 %   problem = TERMINALHITTING(N, K, T) creates a terminal-hitting time problem
@@ -8,27 +8,38 @@ classdef TerminalHitting < Problem
 %   See also: FirstHitting, MaximalHitting, Viability
 
     methods
-        function obj = TerminalHitting(N, K, T, varargin)
-            p = inputParser;
-            addRequired(p, 'N');
-            addRequired(p, 'K');
-            addRequired(p, 'T');
-            parse(p, N, K, T, varargin{:});
+        function obj = TerminalHitting(varargin)
+            % TERMINALHITTING Construct an instance of the problem.
+            if nargin
 
-            % Ensure T in K?
+                p = inputParser;
+                addParameter(p, 'SafeSet', srt.Tube.empty);
+                addParameter(p, 'TargetSet', srt.Tube.empty);
+                parse(p, varargin{:});
 
-            obj.time_horizon_ = N;
-            obj.safe_set_ = K;
-            obj.target_set_ = T;
+                % Ensure T in K?
+
+                obj.safe_tube_ = p.Results.SafeSet;
+                obj.target_tube_ = p.Results.TargetSet;
+
+                assert(length(obj.safe_tube_) == length(obj.target_tube_));
+
+                obj.time_horizon_ = length(p.Results.SafeSet);
+            else
+%                 help(dbstack(1).name)
+                error('Invalid problem definition.');
+            end
         end
     end
 
     methods
         function tf = contains(obj, k, varargin)
             if k == obj.time_horizon_
-                tf = ~obj.in_target_set(varargin{:});
+                tube = obj.target_tube_(k);
+                tf = tube.contains(varargin{:});
             else
-                tf = ~obj.in_safe_set(varargin{:});
+                tube = obj.safe_tube_(k);
+                tf = tube.contains(varargin{:});
             end
         end
     end

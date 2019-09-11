@@ -1,4 +1,4 @@
-function result = compute_point(obj, problem, sys, x0, varargin)
+function results = compute_point(obj, prb, sys, x0, varargin)
 % Solve the problem of stochastic reachability of a target tube (a lower bound
 % on the maximal reach probability and an open-loop controller synthesis) using
 % convex chance-constrained optimization

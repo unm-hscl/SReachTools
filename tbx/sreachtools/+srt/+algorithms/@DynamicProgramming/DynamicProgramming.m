@@ -1,4 +1,4 @@
-classdef DynamicProgramming < Algorithm
+classdef DynamicProgramming < srt.algorithms.Algorithm
 % DYNAMICPROGRAMMING Dynamic programming implementation.
 
     properties
@@ -21,7 +21,7 @@ classdef DynamicProgramming < Algorithm
             % DYNAMICPROGRAMMING Construct an instance of the algorithm.
 
             % Call the parent constructor.
-            obj = obj@Algorithm(varargin{:});
+            obj = obj@srt.algorithms.Algorithm(varargin{:});
 
         end
     end

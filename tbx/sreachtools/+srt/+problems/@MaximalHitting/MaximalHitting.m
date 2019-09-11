@@ -1,4 +1,4 @@
-classdef MaximalHitting < Problem
+classdef MaximalHitting < srt.problems.Problem
 % MAXIMALHITTING Specifies a maximal-hitting time problem.
 %
 %   problem = MAXIMALHITTING(N, K, T) creates a maximal-hitting time problem

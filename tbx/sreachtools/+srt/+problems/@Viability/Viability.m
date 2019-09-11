@@ -1,4 +1,4 @@
-classdef Viability < Problem
+classdef Viability < srt.problems.Problem
 % VIABILITY Specifies a viability problem.
 %
 %   problem = VIABILITY(N, K) creates a viability problem object. The viability

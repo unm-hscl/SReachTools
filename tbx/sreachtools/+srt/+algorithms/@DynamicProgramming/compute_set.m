@@ -1,4 +1,4 @@
-function result = compute_set(obj, prb, sys, varargin)
+function results = compute_set(obj, prb, sys, varargin)
 
 p = inputParser;
 addRequired(p, 'prb', @obj.validateproblem);

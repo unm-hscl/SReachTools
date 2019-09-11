@@ -1,36 +1,8 @@
-function result = compute_point(obj, problem, sys, x0, varargin)
-% Solve the problem of stochastic reachability of a target tube (a lower bound
-% on the maximal reach probability and an affine controller synthesis) using
-% chance-constrained optimization and difference of convex programming
-% =============================================================================
+function results = compute_point(obj, prb, sys, x0, varargin)
+% COMPUTE_POINT Computes a point solution for the ChanceAffine algorithm.
 %
-% SReachPointCcA implements the chance-constrained underapproximation to the
-% problem of stochastic reachability of a target tube to construct an affine
-% controller. This technique is discussed in detail in the paper,
-%
-% A. Vinod and M. Oishi. Affine controller synthesis for stochastic reachability
-% via difference of convex programming. In Proc. Conf. Dec. & Ctrl., 2019.
-% (submitted). https://hscl.unm.edu/affinecontrollersynthesis/
-%
-%    High-level desc.   : Use Boole's inequality, Gaussian random vector,
-%                         hyperbolic constraints-to-second order cone constraint
-%                         reformulation, and piecewise linear approximation of
-%                         the inverse of the standard normal cumulative density
-%                         function to create a second-order cone program-based
-%                         difference-of-convex optimization problem
-%    Controller type    : A history-dependent affine controller that satisfies
-%                         softened input constraints (controller satisfies the
-%                         hard input bounds upto a user-specified probabilistic
-%                         threshold)
-%    Optimality         : Suboptimal affine controller for the
-%                         underapproximation problem due to non-convexity
-%                         established by the difference of convex formulation
-%    Approximation      : Guaranteed underapproximation
-%
-% =============================================================================
-%
-% [lb_stoch_reach, opt_input_vec, opt_input_gain, risk_alloc_state, ...
-%   risk_alloc_input] = SReachPointCcA(sys, initial_state, prb.TargetTube, options)
+%   results = COMPUTE_POINT(obj, prb, sys, x0)
+%   results = COMPUTE_POINT(obj, prb, sys, x0, ...)
 %
 % Inputs:
 % -------
@@ -44,25 +16,25 @@ function result = compute_point(obj, problem, sys, x0, varargin)
 %
 % Outputs:
 % --------
-%   lb_stoch_reach
+%   results.lb_stoch_reach
 %               - Lower bound on the stochastic reachability of a target tube
 %                 problem computed using chance constraints and
 %                 difference-of-convex techniques. While it is expected to lie
 %                 in [0,1], it is set to -1 in cases where the
 %                 difference-of-convex optimization fails to converge.
-%   opt_input_vec,
-%     opt_input_gain
+%   results.opt_input_vec,
+%     results.opt_input_gain
 %               - Controller U=MW+d for a concatenated input vector
 %                   U = [u_0; u_1; ...; u_{N-1}] and concatenated disturbance
 %                   vector W=[w_0; w_1; ...; w_{N-1}].
-%                   - opt_input_gain: Affine controller gain matrix of dimension
+%                   - results.opt_input_gain: Affine controller gain matrix of dimension
 %                       (sys.input_dim*N) x (sys.dist_dim*N)
-%                   - opt_input_vec: Open-loop controller: column vector
+%                   - results.opt_input_vec: Open-loop controller: column vector
 %                     dimension
 %                       (sys.input_dim*N) x 1
-%   risk_alloc_state
+%   results.risk_alloc_state
 %               - Risk allocation for the state constraints
-%   risk_alloc_input
+%   results.risk_alloc_input
 %               - Risk allocation for the input constraints
 %
 % See also SReachPoint.
@@ -77,19 +49,22 @@ function result = compute_point(obj, problem, sys, x0, varargin)
 %   on the hard input constraints. See Theorem 1 of the paper cited above.
 % * See @LtiSystem/getConcatMats for more information about the notation used.
 %
-% ============================================================================
-%
-% This function is part of the Stochastic Reachability Toolbox.
-% License for the use of this function is given in
-%      https://sreachtools.github.io/license/
-%
-%
+%   This algorithm is part of the Stochastic Reachability Toolbox.
+%   License for the use of this algorithm is given in
+%   https://sreachtools.github.io/license/
 
 p = inputParser;
 addRequired(p, 'prb', @obj.validateproblem);
 addRequired(p, 'sys', @obj.validatesystem);
 addRequired(p, 'x0');
 parse(p, prb, sys, x0);
+
+results = struct;
+
+import srt.* 
+
+% results.lb_stoch_reach, results.opt_input_vec, results.opt_input_gain, results.risk_alloc_state, ...
+    % results.risk_alloc_input
 
 % Target tubes has polyhedra T_0, T_1, ..., T_{N}
 N = prb.TimeHorizon - 1;
@@ -155,9 +130,9 @@ continue_condition = 1;
 while continue_condition == 1
     % Store previous iterations
     obj_prev = obj_curr;
-    if options.verbose >= 2
-        disp('Setting up the CVX problem');
-    end
+
+    obj.print_verbose(2, 'Setting up the CVX problem\n');
+
     % The iteration values are updated at the end of the problem
     cvx_begin quiet
         variable M(sys.input_dim*N,sys.dist_dim*N);
@@ -254,15 +229,16 @@ while continue_condition == 1
         obj_curr = cvx_optval;
 
         if iter_count == 0
-            if options.verbose >= 2
-                fprintf([' 0. CVX status: %s | Max iterations : <%d\n', ...
-                         'Current probabilty: %1.3f | tau_iter: %d\n', ...
-                         'DC slack-total sum --- state: %1.2e | ', ...
-                            'input: %1.2e\n\n'], ...
-                      solver_status,  options.iter_max, ...
-                      1-(obj_curr - dc_slack_with_tau_curr), tau_iter, ...
-                      sum_slack_rev_state,sum_slack_rev_input);
-            end
+
+            obj.print_verbose(2, ...
+                [' 0. CVX status: %s | Max iterations : <%d\n', ...
+                 'Current probabilty: %1.3f | tau_iter: %d\n', ...
+                 'DC slack-total sum --- state: %1.2e | ', ...
+                 'input: %1.2e\n\n'], ...
+                 solver_status,  options.iter_max, ...
+                 1-(obj_curr - dc_slack_with_tau_curr), tau_iter, ...
+                 sum_slack_rev_state,sum_slack_rev_input);
+
         else
             % The continue criteria is < iter_max AND
             % NOT OF DC stopping criteria in Lipp and Boyd is met) AND
@@ -271,20 +247,21 @@ while continue_condition == 1
                 ~((abs(obj_prev - obj_curr) <= options.dc_conv_tol) &&...
                     max(sum_slack_rev_input, sum_slack_rev_input) <=...
                     options.slack_tol));
-            if options.verbose >= 2
-                % Iteration status analysis
-                fprintf(['%2d. CVX status: %s | Max iterations : <%d\n', ...
-                         'Current probabilty: %1.3f | tau_iter: %1.3e\n',...
-                         'DC slack-total sum --- state: %1.2e | ', ...
-                            'input: %1.2e | Acceptable: <%1.3e\n', ...
-                         'DC convergence error: %1.2e | Acceptable:', ...
-                         ' <%1.3e\n\n'], ...
-                         iter_count, solver_status, options.iter_max, ...
-                         1-(obj_curr - dc_slack_with_tau_curr), ...
-                         tau_iter, sum_slack_rev_state, ...
-                         sum_slack_rev_input, options.slack_tol, ...
-                         abs(obj_prev - obj_curr), options.dc_conv_tol);
-            end
+
+            % Iteration status analysis
+            obj.print_verbose(2, ...
+                ['%2d. CVX status: %s | Max iterations : <%d\n', ...
+                 'Current probabilty: %1.3f | tau_iter: %1.3e\n',...
+                 'DC slack-total sum --- state: %1.2e | ', ...
+                    'input: %1.2e | Acceptable: <%1.3e\n', ...
+                 'DC convergence error: %1.2e | Acceptable:', ...
+                 ' <%1.3e\n\n'], ...
+                 iter_count, solver_status, options.iter_max, ...
+                 1-(obj_curr - dc_slack_with_tau_curr), ...
+                 tau_iter, sum_slack_rev_state, ...
+                 sum_slack_rev_input, options.slack_tol, ...
+                 abs(obj_prev - obj_curr), options.dc_conv_tol);
+
         end
         % Next iteration initialization
         norm_state_replace_slack_iter = norm_state_replace_slack;
@@ -297,34 +274,38 @@ while continue_condition == 1
     else
         % Converged to an infeasible solution => Quit!
         continue_condition = -1;
+
         % Print reasons for failure
-        if options.verbose >= 1
-            fprintf('CVX had trouble finding solution. ', ...
-                'CVX status: %s\n', cvx_status);
-            fprintf(['Slack variables of the difference-of-convex ', ...
-                     'is not small enough\nDC sum-total slack --- ', ...
-                     'state: %1.3e | input: %1.3e | Acceptable: ', ...
-                     '<%1.1e\n'], ...
-                     sum_slack_rev_state, sum_slack_rev_input, ...
-                     options.dc_conv_tol);
+        obj.print_verbose(1, ...
+            'CVX had trouble finding solution. ', ...
+            'CVX status: %s\n', cvx_status);
+
+        obj.print_verbose(1, ...
+            ['Slack variables of the difference-of-convex ', ...
+             'is not small enough\nDC sum-total slack --- ', ...
+             'state: %1.3e | input: %1.3e | Acceptable: ', ...
+             '<%1.1e\n'], ...
+             sum_slack_rev_state, sum_slack_rev_input, ...
+             options.dc_conv_tol);
+
         end
     end
 end
 
 if max(sum_slack_rev_state, sum_slack_rev_input) <= options.dc_conv_tol
     % Both the DC slack variables are below tolerance
-    lb_stoch_reach = 1 - sum(deltai)/(1-options.max_input_viol_prob);
-    opt_input_vec = d;
-    opt_input_gain = M;
-    risk_alloc_state = deltai;
-    risk_alloc_input = gammai;
+    results.lb_stoch_reach = 1 - sum(deltai)/(1-options.max_input_viol_prob);
+    results.opt_input_vec = d;
+    results.opt_input_gain = M;
+    results.risk_alloc_state = deltai;
+    results.risk_alloc_input = gammai;
 else
     % Tell SReachPoint that no solution was found
-    lb_stoch_reach = -1;
-    opt_input_vec = nan(sys.input_dim * N,1);
-    opt_input_gain = [];
-    risk_alloc_state = nan(n_lin_state,1);
-    risk_alloc_input = nan(n_lin_input,1);
+    results.lb_stoch_reach = -1;
+    results.opt_input_vec = nan(sys.input_dim * N,1);
+    results.opt_input_gain = [];
+    results.risk_alloc_state = nan(n_lin_state,1);
+    results.risk_alloc_input = nan(n_lin_input,1);
 end
 
 end

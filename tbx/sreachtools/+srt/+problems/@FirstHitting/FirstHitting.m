@@ -1,4 +1,4 @@
-classdef FirstHitting < Problem
+classdef FirstHitting < srt.problems.Problem
 % FIRSTHITTING Specifies a first-hitting time problem.
 %
 %   problem = FIRSTHITTING(N, K, T) creates a first-hitting time problem object.

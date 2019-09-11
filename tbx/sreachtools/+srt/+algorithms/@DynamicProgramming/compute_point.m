@@ -1,4 +1,4 @@
-function result = compute_point(obj, prb, sys, x0, varargin)
+function results = compute_point(obj, prb, sys, x0, varargin)
 
 p = inputParser;
 addRequired(p, 'prb', @obj.validateproblem);

@@ -12,6 +12,7 @@ classdef (Abstract) Algorithm < handle
             % ALGORITHM Construct an instance of the algorithm.
 
             p = inputParser;
+            p.KeepUnmatched = true;
             addParameter(p, 'verbose', 0);
             parse(p, varargin{:});
 
@@ -22,7 +23,7 @@ classdef (Abstract) Algorithm < handle
         end
     end
 
-    methods (Hidden, Access = protected)
+    methods (Hidden, Access = private)
         function validatedependencies(obj)
             % VALIDATEDEPENDENCIES Validate dependencies.
         end
@@ -53,7 +54,7 @@ classdef (Abstract) Algorithm < handle
         end
     end
 
-    methods (Access = protected)
+    methods (Sealed, Access = protected)
         function print_verbose(obj, level, varargin)
             % print_verbose Prints verbose messages to the command window.
             if obj.verbose_ >= level

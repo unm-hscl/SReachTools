@@ -1,33 +1,8 @@
-function result = compute_point(obj, problem, sys, x0, varargin)
-% Solve the problem of stochastic reachability of a target tube (a lower bound
-% on the maximal reach probability and an affine controller synthesis) using
-% chance-constrained optimization and uniform risk allocation
-% =============================================================================
+function results = compute_point(obj, prb, sys, x0, varargin)
+% COMPUTE_POINT Computes a point solution for the ChanceAffineUniform algorithm.
 %
-% SReachPointCcAuniform implements the chance-constrained underapproximation to
-% the problem of stochastic reachability of a target tube to construct an affine
-% controller. This technique is inspired from Algorithms 1 and 2 of
-%
-% M. Vitus and C. Tomlin, "On feedback design and risk allocation in chance
-% constrained control", In Proc. Conf. Dec. & Ctrl., 2011.
-%
-% In contrast to their original algorithm, we have a chance constraint on
-% the input and the state. Further, the lower bound on the reachability (state
-% constraint) depends on how high the input chance constraint satisfaction
-% probability is. Therefore, we perform two levels of bisection
-% --- one to maximize the probability of constraint satisfaction for the
-% state, and the other to meet the chance constraint on the input. However,
-% to save time, we check only for feasibility in the input bisection.
-%
-% Subsequently, the obtained solution is discounted for input constraint
-% violation using Theorem 1 of
-%
-% A. Vinod and M. Oishi. Affine controller synthesis for stochastic reachability
-% via difference of convex programming. In Proc. Conf. Dec. & Ctrl., 2019.
-% (submitted). https://hscl.unm.edu/affinecontrollersynthesis/
-%
-%
-% =============================================================================
+%   results = COMPUTE_POINT(obj, prb, sys, x0)
+%   results = COMPUTE_POINT(obj, prb, sys, x0, ...)
 %
 %   [lb_stoch_reach, opt_input_vec, opt_input_gain, risk_alloc_state, ...
 %       risk_alloc_input] = SReachPointCcAu(sys, initial_state, safety_tube, ...
@@ -71,11 +46,11 @@ function result = compute_point(obj, problem, sys, x0, varargin)
 %
 % ============================================================================
 %
-% This function is part of the Stochastic Reachability Toolbox.
-% License for the use of this function is given in
-%      https://sreachtools.github.io/license/
 %
 %
+%   This algorithm is part of the Stochastic Reachability Toolbox.
+%   License for the use of this algorithm is given in
+%   https://sreachtools.github.io/license/
 
 p = inputParser;
 addRequired(p, 'prb', @obj.validateproblem);
@@ -182,11 +157,12 @@ while state_prob_ub - state_prob_lb > options.state_bisect_tol
                     * norms(concat_safety_tube_A* (H * M + G) * ...
                         sqrt_cov_concat_disturb',2,2)<= concat_safety_tube_b
         cvx_end
-        if options.verbose >= 1
-            fprintf(['Safety prob: %1.3f, Input viol: %1.3f | ', ...
-                'CVX status: %s\n'], state_prob_test, ...
-                input_viol_prob_test, cvx_status);
-        end
+
+        obj.print_verbose(1, ...
+            ['Safety prob: %1.3f, Input viol: %1.3f | ', ...
+            'CVX status: %s\n'], state_prob_test, ...
+            input_viol_prob_test, cvx_status);
+
         switch cvx_status
             case 'Solved'
                 % Raise the expected safety probability
