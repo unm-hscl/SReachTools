@@ -1,15 +1,15 @@
-classdef Empty < srt.disturbances.RandomVector
+classdef Zero < srt.disturbances.RandomVector
     methods
-        function obj = Empty()
+        function obj = Zero()
             obj@srt.disturbances.RandomVector()
         end
 
         function s = sample(obj)
-            s = [];
+            s = 0;
         end
 
         function rv = concat(obj)
-            rv = srt.disturbances.Empty();
+            rv = srt.disturbances.Zero();
         end
     end
 end

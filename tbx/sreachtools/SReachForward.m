@@ -4,9 +4,9 @@ function results = SReachForward(prb, alg, sys, varargin)
 %   SREACHFORWARD(...) forward stochastic reachability.
 %
 %   Example:
-%       prob = srk.problems.FirstHittingTime();
-%       alg = srk.algorithms.DynamicProgramming();
-%       sys = srk.systems.StochasticLTISystem();
+%       prob = srt.problems.FirstHittingTime();
+%       alg = srt.algorithms.DynamicProgramming();
+%       sys = srt.systems.StochasticLTISystem();
 %       SReachForward(prob, alg, sys);
 %
 %   See also: SReachPoint, SReachSet

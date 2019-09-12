@@ -4,9 +4,9 @@ function results = SReachSet(prb, alg, sys, varargin)
 %   SREACHSET(...) stochastic reachability for a set.
 %
 %   Example:
-%       prob = srk.problems.FirstHittingTime();
-%       alg = srk.algorithms.DynamicProgramming();
-%       sys = srk.systems.StochasticLTISystem();
+%       prob = srt.problems.FirstHittingTime();
+%       alg = srt.algorithms.DynamicProgramming();
+%       sys = srt.systems.StochasticLTISystem();
 %       SReachSet(prob, alg, sys);
 %
 %   See also: SReachForward, SReachPoint
