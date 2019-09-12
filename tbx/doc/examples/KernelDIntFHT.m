@@ -10,7 +10,7 @@ N = 3;
 K = srt.Tube(N, Polyhedron('lb', [-1; -1], 'ub', [1; 1]));
 T = srt.Tube(N, Polyhedron('lb', [-0.5; -0.5], 'ub', [0.5; 0.5]));
 
-prb = srt.problems.FirstHitting('SafeSet', K, 'TargetSet', T);
+prb = srt.problems.FirstHitting('ConstraintTube', K, 'TargetTube', T);
 
 %% System Definition
 % Generate input/output samples for a double integrator system.
@@ -43,11 +43,11 @@ alg = srt.algorithms.KernelEmbeddings('sigma', 0.1, 'lambda', 1);
 
 s = linspace(-1, 1, 100);
 X = sampleunif(s, s);
-U = zeros(2, size(X, 2));
+U = zeros(1, size(X, 2));
 
 results = SReachPoint(prb, alg, sys, X, U);
 
 %%
 % View the results.
 
-surf(s, s, reshape(results.Pr(1, :), 100, 100));
+surf(s, s, reshape(results.Pr(1, :), 100, 100), 'EdgeColor', 'none');

@@ -8,26 +8,25 @@ classdef FirstHitting < srt.problems.Problem
 %   See also: MaximalHitting, TerminalHitting, Viability
 
     methods
-        function obj = FirstHitting(N, K, T, varargin)
-            p = inputParser;
-            addRequired(p, 'N');
-            addRequired(p, 'K');
-            addRequired(p, 'T');
-            parse(p, N, K, T, varargin{:});
+        function obj = FirstHitting(varargin)
+            % FIRSTHITTING Construct an instance of the problem.
+            if nargin
 
-            obj.time_horizon_ = N;
-            obj.safe_set_ = K;
-            obj.target_set_ = T;
-        end
-    end
+                p = inputParser;
+                addParameter(p, 'ConstraintTube', srt.Tube.empty);
+                addParameter(p, 'TargetTube', srt.Tube.empty);
+                parse(p, varargin{:});
 
-    methods
-        function tf = contains(obj, k, varargin)
-            if k == obj.time_horizon_
-                tf = ~obj.in_target_set(varargin{:});
+                % Ensure T in K?
+
+                obj.constraint_tube_ = p.Results.ConstraintTube;
+                obj.target_tube_ = p.Results.TargetTube;
+
+                assert(length(obj.constraint_tube_) == ...
+                       length(obj.target_tube_));
+
             else
-                tf = ~obj.in_safe_set(varargin{:}) | ...
-                      obj.in_target_set(varargin{:});
+                error('Invalid problem definition.');
             end
         end
     end

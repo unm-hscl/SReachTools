@@ -78,12 +78,12 @@ classdef Tube
             len = length(obj.tube_);
         end
 
-        function display(obj)
-            fprintf('Tube of %d sets.\n', length(obj));
-        end
-
-        function tf = contains(obj, x)
-            tf = obj.tube_.contains(x);
+        function tf = contains(obj, k, varargin)
+            if nargin == length(obj.tube_)
+                tf = obj.tube_(end).contains(varargin{:});
+            else
+                tf = obj.tube_(k).contains(varargin{:});
+            end
         end
 
         function v = end(obj, ~, ~)
@@ -101,9 +101,10 @@ validateattributes(sets, {'Polyhedron', 'Function'}, {'vector'});
 
 % Cannot be empty set.
 if ~isempty(sets)
-    for s = sets.'
-        assert(~s.isEmptySet());
-    end
+    % for s = sets.'
+    %     assert(~s.isEmptySet());
+    % end
+    sets.forEach(@isEmptySet);
 end
 
 end

@@ -7,20 +7,19 @@ classdef Viability < srt.problems.Problem
 %   See also: FirstHitting, MaximalHitting, TerminalHitting
 
     methods
-        function obj = Viability(N, K, varargin)
-            p = inputParser;
-            addRequired(p, 'N');
-            addRequired(p, 'K');
-            parse(p, N, K, varargin{:});
+        function obj = Viability(varargin)
+            % VIABILITY Construct an instance of the problem.
+            if nargin
 
-            obj.time_horizon_ = N;
-            obj.safe_set_ = K;
-        end
-    end
+                p = inputParser;
+                addParameter(p, 'ConstraintTube', srt.Tube.empty);
+                parse(p, varargin{:});
 
-    methods
-        function tf = contains(obj, k, varargin)
-            tf = ~obj.in_safe_set(varargin{:});
+                obj.constraint_tube_ = p.Results.ConstraintTube;
+
+            else
+                error('Invalid problem definition.');
+            end
         end
     end
 

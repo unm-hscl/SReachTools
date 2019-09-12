@@ -2,12 +2,8 @@ classdef (Abstract) Problem < handle
 % PROBLEM Defines the interface for a problem.
 
     properties (Access = protected)
-        time_horizon_(1, 1) double {mustBeInteger, mustBePositive} = 1
-
-        % SAFE_TUBE_ Target set must be a scalar.
-        safe_tube_(1, 1) {mustBeValidSet};
-        % TARGET_TUBE_ Target set must be a scalar.
-        target_tube_(1, 1) {mustBeValidSet};
+        constraint_tube_(1, 1) {mustBeValidTube};
+        target_tube_(1, 1) {mustBeValidTube};
     end
 
     properties (Dependent)
@@ -20,7 +16,7 @@ classdef (Abstract) Problem < handle
         %   Can be defined as either a Polyhedron, Function, or as a Tube.
         %
         %   See also: Polyhedron, Function, Tube
-        SafeTube
+        ConstraintTube
 
         % TARGETTUBE The target tube.
         %
@@ -33,20 +29,17 @@ classdef (Abstract) Problem < handle
 
     methods
         function N = get.TimeHorizon(obj)
-            N = obj.time_horizon_;
-        end
-        function set.TimeHorizon(N)
-            obj.time_horizon_ = N;
+            N = length(obj.constraint_tube_);
         end
 
-        function T = get.SafeTube(obj)
-            T = obj.safe_tube_;
+        function T = get.ConstraintTube(obj)
+            T = obj.constraint_tube_;
         end
-        function set.SafeTube(obj, T)
+        function set.ConstraintTube(obj, T)
             if isa(K, function_handle)
                 K = Function(K);
             end
-            obj.safe_tube_ = T;
+            obj.constraint_tube_ = T;
         end
 
         function T = get.TargetTube(obj)
@@ -60,22 +53,12 @@ classdef (Abstract) Problem < handle
         end
     end
 
-    methods
-        function tf = in_target_tube(obj, varargin)
-            if isa(obj.target_tube_, 'Function')
-                tf = obj.target_tube_.feval(varargin{:});
-            else
-                tf = obj.target_tube_.contains(varargin{:});
-            end
-        end
-    end
-
-    methods (Abstract)
-        tf = contains(obj, varargin)
-    end
-
 end
 
-function mustBeValidSet(set)
-    % isa(set, {'Polyhedron', 'Tube', 'Function'});
+function mustBeValidTube(t)
+% MUSTBEVALIDTUBE Verify tube is valid.
+
+% Sets must be valid Tube.
+% validateattributes(t, {'srt.Tube'}, {'scalar'});
+
 end

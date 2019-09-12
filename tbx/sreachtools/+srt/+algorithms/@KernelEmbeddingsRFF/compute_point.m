@@ -15,22 +15,35 @@ mt = size(x0, 2);
 
 M = sys.length;
 
-% Compute weight matrix.
-Gx = obj.compute_autocovariance(sys.X, obj.Sigma);
-Gu = obj.compute_autocovariance(sys.U, obj.Sigma);
+% Compute random fourier features.
+wx = randn(obj.D, size(sys.X, 1));
+% wx = normrnd(0, obj.Sigma^2, obj.D, size(sys.X, 1));
+wu = randn(obj.D, size(sys.U, 1));
+% wu = normrnd(0, obj.Sigma^2, obj.D, size(sys.U, 1));
+
+b = (2*pi).*rand(obj.D, 1);
+
+Zx = sqrt(2).*cos(wx*sys.X + b);
+Zu = sqrt(2).*cos(wu*sys.U + b);
+
+Gx = Zx*Zx.';
+Gu = Zu*Zu.';
 
 G = Gx.*Gu;
 
-W = G + obj.lambda_*M*eye(M);
+W = G + obj.lambda_*M*eye(obj.D);
 
 % Compute value functions.
 Vk = zeros(N, M);
 
-cxy = obj.compute_cross_covariance(sys.X, sys.Y, obj.Sigma);
-cuv = obj.compute_cross_covariance(sys.U, sys.U, obj.Sigma);
+Zy = sqrt(2).*cos(wx*sys.Y + b);
+
+cxy = Zy;
+cuv = Zu;
+
 beta = cxy.*cuv;
-beta = W\beta;
-beta = algorithms.KernelEmbeddings.normalize_beta(beta);
+beta = (Zx.*Zu).'/W*beta;
+beta = obj.normalize_beta(beta);
 
 switch class(prb)
     case 'srt.problems.FirstHitting'
@@ -64,10 +77,11 @@ end
 % Compute probabilities for point.
 Pr = zeros(N, mt);
 
-cxt = obj.compute_cross_covariance(sys.X, x0, obj.Sigma);
-cut = obj.compute_cross_covariance(sys.U, u0, obj.Sigma);
+cxt = sqrt(2).*cos(wx*x0 + b);
+cut = sqrt(2).*cos(wu*u0 + b);
+
 beta = cxt.*cut;
-beta = W\beta;
+beta = (Zx.*Zu).'/W*beta;
 beta = obj.normalize_beta(beta);
 
 switch class(prb)

@@ -1,16 +1,15 @@
-%% Kernel Embeddings Example (Terminal-Hitting Time Problem)
-% Kernel embeddings example showing the terminal-hitting time problem
+%% Kernel Embeddings Example (Viability Problem)
+% Kernel embeddings example showing the viability problem
 % for a double integrator system.
 %
-%% Problem Definition
+%%
 % Specify the time horizon, the safe set $\mathcal{K}$, and the target set
 % $\mathcal{T}$.
 
 N = 3;
 K = srt.Tube(N, Polyhedron('lb', [-1; -1], 'ub', [1; 1]));
-T = srt.Tube(N, Polyhedron('lb', [-0.5; -0.5], 'ub', [0.5; 0.5]));
 
-prb = srt.problems.TerminalHitting('ConstraintTube', K, 'TargetTube', T);
+prb = srt.problems.Viability('ConstraintTube', K);
 
 %% System Definition
 % Generate input/output samples for a double integrator system.

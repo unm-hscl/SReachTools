@@ -1,19 +1,22 @@
-classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
-% KERNELEMBEDDINGS Kernel distribution embeddings.
+classdef (Sealed) KernelEmbeddingsRFF < srt.algorithms.Algorithm
+% KERNELEMBEDDINGSRFF Kernel distribution embeddings (RFF).
 %
-%   Kernel distribution embeddings.
+%   Kernel distribution embeddings using random fourier features.
 %
 %   Copyright 2019 Adam Thorpe
 
     properties (Access = private)
 
-        % SIGMA_ Sigma parameter to Gaussian kernel.
+        % Sigma parameter to Gaussian kernel.
         sigma_(1, 1) double {mustBeNumeric, mustBePositive} = 0.1
-        % LAMBDA_ Regularization parameter.
+        % Regularization parameter.
         lambda_(1, 1) double {mustBeNumeric, mustBePositive} = 1
 
-        % VALUE_FUNCTIONS_ Computed value functions.
+        % Computed value functions.
         value_functions_ double {mustBeNumeric}
+
+        % Fourier dimension.
+        D_
     end
 
     properties (Dependent)
@@ -21,11 +24,14 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
         Sigma
         % LAMBDA Regularization parameter.
         Lambda
+
+        % D Fourier dimension.
+        D
     end
 
     methods
-        function obj = KernelEmbeddings(varargin)
-            % KERNELEMBEDDINGS Construct an instance of the algorithm.
+        function obj = KernelEmbeddingsRFF(varargin)
+            % KERNELEMBEDDINGSRFF Construct an instance of the algorithm.
 
             % Call the parent constructor.
             obj = obj@srt.algorithms.Algorithm(varargin{:});
@@ -33,10 +39,13 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
             p = inputParser;
             addParameter(p, 'sigma', 0.1);
             addParameter(p, 'lambda', 1);
+            addParameter(p, 'D', 1);
             parse(p, varargin{:});
 
             obj.sigma_ = p.Results.sigma;
             obj.lambda_ = p.Results.lambda;
+
+            obj.D_ = p.Results.D;
 
         end
     end
@@ -49,7 +58,7 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
             n = zeros(M);
 
             for k = 1:size(x, 1)
-                n = n + (repmat(x(k, :), [M, 1]) - repmat(x(k, :)', [1, M])).^2;
+                n = n + (repmat(x(k, :), [M, 1]) - repmat(x(k, :)', [1, M]));
             end
         end
         function n = compute_norm_cross(x, y)
@@ -60,7 +69,7 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
             n = zeros(M, T);
 
             for k = 1:size(x, 1)
-                n = n + (repmat(y(k, :), [M, 1]) - repmat(x(k, :)', [1, T])).^2;
+                n = n + (repmat(y(k, :), [M, 1]) - repmat(x(k, :)', [1, T]));
             end
         end
 
@@ -69,15 +78,15 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
             n = b./sum(abs(b), 1);
         end
 
-        function cxx = compute_autocovariance(x, sigma)
+        function cxx = compute_autocovariance(w, x, b)
             % COMPUTE_AUTOCOVARIANCECOMPUTE Compute autocovariance matrix.
             cxx = srt.algorithms.KernelEmbeddings.compute_norm(x);
-            cxx = exp(-cxx/(2*sigma^2));
+            cxx = sqrt(2).*cos(w*cxx + b);
         end
-        function cxy = compute_cross_covariance(x, y, sigma)
+        function cxy = compute_cross_covariance(w, x, y, b)
             % COMPUTE_CROSS_COVARIANCE Compute cross-covariance matrix.
             cxy = srt.algorithms.KernelEmbeddings.compute_norm_cross(x, y);
-            cxy = exp(-cxy/(2*sigma^2));
+            cxy = sqrt(2).*cos(w*cxy + b);
         end
     end
 
@@ -95,6 +104,13 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
         end
         function lambda = get.Lambda(obj)
             lambda = obj.lambda_;
+        end
+        function set.D(obj, D)
+            validateattributes(D, {'double'}, {'positive', 'scalar'});
+            obj.D_ = D;
+        end
+        function D = get.D(obj)
+            D = obj.D_;
         end
     end
 
