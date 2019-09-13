@@ -16,34 +16,21 @@ mt = size(x0, 2);
 M = sys.length;
 
 % Compute random fourier features.
-wx = randn(obj.D, size(sys.X, 1));
-% wx = normrnd(0, obj.Sigma^2, obj.D, size(sys.X, 1));
-wu = randn(obj.D, size(sys.U, 1));
-% wu = normrnd(0, obj.Sigma^2, obj.D, size(sys.U, 1));
+wx = (1/obj.Sigma^2).*randn(size(sys.X, 1), obj.D);
+wu = (1/obj.Sigma^2).*randn(size(sys.U, 1), obj.D);
 
-b = (2*pi).*rand(obj.D, 1);
+Zx = exp(1i*wx.'*sys.X);
+Zu = exp(1i*wu.'*sys.U);
+Zy = exp(1i*wx.'*sys.Y);
 
-Zx = sqrt(2).*cos(wx*sys.X + b);
-Zu = sqrt(2).*cos(wu*sys.U + b);
+Z = Zx.*Zu;
 
-Gx = Zx*Zx.';
-Gu = Zu*Zu.';
+W = Z*Z' + obj.Lambda*eye(obj.D);
 
-G = Gx.*Gu;
-
-W = G + obj.lambda_*M*eye(obj.D);
+beta = W\Z;
 
 % Compute value functions.
 Vk = zeros(N, M);
-
-Zy = sqrt(2).*cos(wx*sys.Y + b);
-
-cxy = Zy;
-cuv = Zu;
-
-beta = cxy.*cuv;
-beta = (Zx.*Zu).'/W*beta;
-beta = obj.normalize_beta(beta);
 
 switch class(prb)
     case 'srt.problems.FirstHitting'
@@ -53,7 +40,8 @@ switch class(prb)
         for k = N-1:-1:2
             Vk(k, :) = prb.TargetTube.contains(k, sys.Y) + ...
                        (prb.ConstraintTube.contains(k, sys.Y) & ...
-                        ~prb.TargetTube.contains(k, sys.Y)).*(Vk(k+1, :)*beta);
+                        ~prb.TargetTube.contains(k, sys.Y)).* ...
+                            (Vk(k+1, :)*beta'*(Zy.*Zu));
         end
 
     case 'srt.problems.TerminalHitting'
@@ -61,7 +49,8 @@ switch class(prb)
         Vk(N, :) = prb.TargetTube.contains(N, sys.Y);
 
         for k = N-1:-1:2
-            Vk(k, :) = prb.ConstraintTube.contains(k, sys.Y).*(Vk(k+1, :)*beta);
+            Vk(k, :) = prb.ConstraintTube.contains(k, sys.Y).* ...
+                (Vk(k+1, :)*beta'*(Zy.*Zu));
         end
 
     case 'srt.problems.Viability'
@@ -69,7 +58,8 @@ switch class(prb)
         Vk(N, :) = prb.ConstraintTube.contains(N, sys.Y);
 
         for k = N-1:-1:2
-            Vk(k, :) = prb.ConstraintTube.contains(k, sys.Y).*(Vk(k+1, :)*beta);
+            Vk(k, :) = prb.ConstraintTube.contains(k, sys.Y).* ...
+                (Vk(k+1, :)*beta'*(Zy.*Zu));
         end
 
 end
@@ -77,12 +67,8 @@ end
 % Compute probabilities for point.
 Pr = zeros(N, mt);
 
-cxt = sqrt(2).*cos(wx*x0 + b);
-cut = sqrt(2).*cos(wu*u0 + b);
-
-beta = cxt.*cut;
-beta = (Zx.*Zu).'/W*beta;
-beta = obj.normalize_beta(beta);
+Zx0 = exp(1i*wx.'*x0);
+Zu0 = exp(1i*wu.'*u0);
 
 switch class(prb)
     case 'srt.problems.FirstHitting'
@@ -92,7 +78,8 @@ switch class(prb)
         for k = N-1:-1:1
             Pr(k, :) = prb.TargetTube.contains(k, x0) + ...
                        (prb.ConstraintTube.contains(k, x0) & ...
-                        ~prb.TargetTube.contains(k, x0)).*(Vk(k+1, :)*beta);
+                        ~prb.TargetTube.contains(k, x0)).* ...
+                            (Vk(k+1, :)*beta'*(Zx0.*Zu0));
         end
 
     case 'srt.problems.TerminalHitting'
@@ -100,7 +87,8 @@ switch class(prb)
         Pr(N, :) = prb.TargetTube.contains(N, x0);
 
         for k = N-1:-1:1
-            Pr(k, :) = prb.ConstraintTube.contains(k, x0).*(Vk(k+1, :)*beta);
+            Pr(k, :) = prb.ConstraintTube.contains(k, x0).* ...
+                (Vk(k+1, :)*beta'*(Zx0.*Zu0));
         end
 
     case 'srt.problems.Viability'
@@ -108,12 +96,13 @@ switch class(prb)
         Pr(N, :) = prb.ConstraintTube.contains(N, x0);
 
         for k = N-1:-1:1
-            Pr(k, :) = prb.ConstraintTube.contains(k, x0).*(Vk(k+1, :)*beta);
+            Pr(k, :) = prb.ConstraintTube.contains(k, x0).* ...
+                (Vk(k+1, :)*beta'*(Zx0.*Zu0));
         end
 
 end
 
 results = struct;
-results.Pr = Pr;
+results.Pr = real(Pr);
 
 end

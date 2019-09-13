@@ -52,6 +52,20 @@ classdef (Sealed) KernelEmbeddingsRFF < srt.algorithms.Algorithm
 
     % Static methods.
     methods (Static, Hidden)
+        function d = compute_diff(w, x)
+            % COMPUTE_DIFF Compute the difference.
+            D = size(w, 2);
+            M = size(x, 2);
+
+            d = zeros(D);
+
+            wx = w.'*x;
+
+            for k = 1:D
+                d = d + repmat(wx(k, :), [D, 1]) - repmat(wx(k, :)', [1, D]);
+            end
+        end
+
         function n = compute_norm(x)
             % COMPUTE_NORM Compute the norm.
             M = size(x, 2);
@@ -81,12 +95,12 @@ classdef (Sealed) KernelEmbeddingsRFF < srt.algorithms.Algorithm
         function cxx = compute_autocovariance(w, x, b)
             % COMPUTE_AUTOCOVARIANCECOMPUTE Compute autocovariance matrix.
             cxx = srt.algorithms.KernelEmbeddings.compute_norm(x);
-            cxx = sqrt(2).*cos(w*cxx + b);
+            cxx = cos(w*cxx + b);
         end
         function cxy = compute_cross_covariance(w, x, y, b)
             % COMPUTE_CROSS_COVARIANCE Compute cross-covariance matrix.
             cxy = srt.algorithms.KernelEmbeddings.compute_norm_cross(x, y);
-            cxy = sqrt(2).*cos(w*cxy + b);
+            cxy = cos(w*cxy + b);
         end
     end
 
