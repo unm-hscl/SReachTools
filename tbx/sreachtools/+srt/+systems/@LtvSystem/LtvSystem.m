@@ -51,18 +51,14 @@ classdef LtvSystem < srt.systems.StochasticSystem
                 @(x) isa(x, 'function_handle') || isa(x, 'numeric'));
             addOptional(p, 'F', [], ...
                 @(x) isa(x, 'function_handle') || isa(x, 'numeric'));
-            addOptional(p, 'w', [], ...
+            addOptional(p, 'w', srt.disturbances.Empty(), ...
                 @(x) isa(x, 'srt.disturbances.RandomVector'));
             parse(p, varargin{:});
 
             obj.A_ = p.Results.A;
             obj.B_ = p.Results.B;
             obj.F_ = p.Results.F;
-            if isempty(p.Results.w)
-                obj.w_ = srt.disturbances.Empty();
-            else
-                obj.w_ = p.Results.w;
-            end
+            obj.w_ = p.Results.w;
 
             obj.X_ = srt.spaces.Rn(obj.n_);
 
@@ -239,6 +235,5 @@ classdef LtvSystem < srt.systems.StochasticSystem
                 end    
             end
         end
-
     end
 end
