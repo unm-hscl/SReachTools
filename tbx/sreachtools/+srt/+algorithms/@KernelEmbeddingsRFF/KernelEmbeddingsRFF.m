@@ -37,6 +37,7 @@ classdef (Sealed) KernelEmbeddingsRFF < srt.algorithms.Algorithm
             obj = obj@srt.algorithms.Algorithm(varargin{:});
 
             p = inputParser;
+            p.KeepUnmatched = true;
             addParameter(p, 'sigma', 0.1);
             addParameter(p, 'lambda', 1);
             addParameter(p, 'D', 1);

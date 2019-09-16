@@ -15,13 +15,15 @@ mt = size(x0, 2);
 
 M = sys.length;
 
-% Compute random fourier features.
-wx = (1/obj.Sigma^2).*randn(size(sys.X, 1), obj.D);
-wu = (1/obj.Sigma^2).*randn(size(sys.U, 1), obj.D);
+t_start = tic;
 
-Zx = exp(1i*wx.'*sys.X);
-Zu = exp(1i*wu.'*sys.U);
-Zy = exp(1i*wx.'*sys.Y);
+% Compute random fourier features.
+wx = (1/obj.Sigma^2).*randn(obj.D, size(sys.X, 1));
+wu = (1/obj.Sigma^2).*randn(obj.D, size(sys.U, 1));
+
+Zx = exp(1i*wx*sys.X);
+Zu = exp(1i*wu*sys.U);
+Zy = exp(1i*wx*sys.Y);
 
 Z = Zx.*Zu;
 
@@ -67,8 +69,8 @@ end
 % Compute probabilities for point.
 Pr = zeros(N, mt);
 
-Zx0 = exp(1i*wx.'*x0);
-Zu0 = exp(1i*wu.'*u0);
+Zx0 = exp(1i*wx*x0);
+Zu0 = exp(1i*wu*u0);
 
 switch class(prb)
     case 'srt.problems.FirstHitting'
@@ -102,7 +104,10 @@ switch class(prb)
 
 end
 
+t_elapsed = toc(t_start);
+
 results = struct;
 results.Pr = real(Pr);
+results.time = t_elapsed;
 
 end

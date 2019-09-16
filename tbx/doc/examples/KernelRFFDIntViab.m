@@ -25,7 +25,7 @@ W = 0.01.*randn(size(X));
 A = [1, 0.25; 0, 1];
 B = [0.03125; 0.25];
 
-Y = A*X + W;
+Y = A*X + B*U + W;
 
 %%
 % Create a sample-based stochastic system.
@@ -35,7 +35,7 @@ sys = srt.systems.SampledSystem('X', X, 'U', U, 'Y', Y);
 %% Algorithm
 % Initialize the algorithm.
 
-alg = srt.algorithms.KernelEmbeddingsRFF('sigma', 1, 'lambda', 1, 'D', 500);
+alg = srt.algorithms.KernelEmbeddingsRFF('sigma', 1, 'lambda', 0.01, 'D', 500);
 
 %%
 % Call the algorithm.

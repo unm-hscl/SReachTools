@@ -15,21 +15,27 @@ mt = size(x0, 2);
 
 M = sys.length;
 
+t_start = tic;
+
 % Compute weight matrix.
+obj.print_verbose(1, 'Computing weight matrix.\n');
+
 Gx = obj.compute_autocovariance(sys.X, obj.Sigma);
 Gu = obj.compute_autocovariance(sys.U, obj.Sigma);
 
 G = Gx.*Gu;
 
-W = G + obj.lambda_*M*eye(M);
+W = inv(G + obj.lambda_*M*eye(M));
 
 % Compute value functions.
+obj.print_verbose(1, 'Computing value functions.\n');
+
 Vk = zeros(N, M);
 
 cxy = obj.compute_cross_covariance(sys.X, sys.Y, obj.Sigma);
 cuv = obj.compute_cross_covariance(sys.U, sys.U, obj.Sigma);
 beta = cxy.*cuv;
-beta = W\beta;
+beta = W*beta; %#ok<*MINV>
 beta = algorithms.KernelEmbeddings.normalize_beta(beta);
 
 switch class(prb)
@@ -62,12 +68,14 @@ switch class(prb)
 end
 
 % Compute probabilities for point.
+obj.print_verbose(1, 'Computing safety probabilities.\n');
+
 Pr = zeros(N, mt);
 
 cxt = obj.compute_cross_covariance(sys.X, x0, obj.Sigma);
 cut = obj.compute_cross_covariance(sys.U, u0, obj.Sigma);
 beta = cxt.*cut;
-beta = W\beta;
+beta = W*beta;
 beta = obj.normalize_beta(beta);
 
 switch class(prb)
@@ -99,7 +107,10 @@ switch class(prb)
 
 end
 
+t_elapsed = toc(t_start);
+
 results = struct;
 results.Pr = Pr;
+results.time = t_elapsed;
 
 end

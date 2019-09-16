@@ -61,6 +61,19 @@ classdef (Abstract) Algorithm < handle
                 fprintf(varargin{:});
             end
         end
+
+        function plot_verbose(obj, level, cb)
+            % print_verbose Prints verbose messages to the command window.
+            if ~isa(cb, 'function_handle')
+                error('Must provide a function handle.');
+            end
+
+            if obj.verbose_ >= level
+                f = figure;
+                ax = axes(f);
+                cb(ax);
+            end
+        end
     end
 
 end

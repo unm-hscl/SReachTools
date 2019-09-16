@@ -17,10 +17,10 @@ import srt.*
 
 p = inputParser;
 
-valprob = @(arg) validateattributes(arg, {'srt.problems.Problem'}, {'nonempty'});
-valalg  = @(arg) validateattributes(arg, {'srt.algorithms.Algorithm'}, {'nonempty'});
-valsys  = @(arg) validateattributes(arg, {'srt.systems.StochasticSystem'}, {'nonempty'});
-valvec  = @(arg) validateattributes(arg, {'numeric'}, {'nonempty'});
+valprob = @(arg) isa(arg, 'srt.problems.Problem');
+valalg  = @(arg) isa(arg, 'srt.algorithms.Algorithm');
+valsys  = @(arg) isa(arg, 'srt.systems.StochasticSystem');
+valvec  = @(arg) isnumeric(arg);
 
 addRequired(p, 'prb', valprob);
 addRequired(p, 'alg', valalg);

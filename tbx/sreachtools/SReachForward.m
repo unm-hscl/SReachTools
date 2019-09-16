@@ -17,9 +17,9 @@ import srt.*
 
 p = inputParser;
 
-valprob = @(arg) validateattributes(arg, {'Problem'}, {'nonempty'});
-valalg  = @(arg) validateattributes(arg, {'Algorithm'}, {'nonempty'});
-valsys  = @(arg) validateattributes(arg, {'StochasticSystem'}, {'nonempty'});
+valprob = @(arg) isa(arg, 'srt.problems.Problem');
+valalg  = @(arg) isa(arg, 'srt.algorithms.Algorithm');
+valsys  = @(arg) isa(arg, 'srt.systems.StochasticSystem');
 
 addRequired(p, 'prb', valprob);
 addRequired(p, 'alg', valalg);

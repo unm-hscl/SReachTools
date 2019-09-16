@@ -25,7 +25,7 @@ W = 0.01.*randn(size(X));
 A = [1, 0.25; 0, 1];
 B = [0.03125; 0.25];
 
-Y = A*X + W;
+Y = A*X + B*U + W;
 
 %%
 % Create a sample-based stochastic system.
