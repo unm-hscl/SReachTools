@@ -65,9 +65,9 @@ classdef ClohessyWiltshireHill < srt.systems.LtiSystem
             addParameter(p, 'DeputyMass', 300, @(x) validateattributes(x, ...
                 {'numeric'}, {'scalar', 'positive', 'real'}));
             addParameter(p, 'Dimension', 6, @(x) x == 4 | x == 6);
-            addOptional(p, 'DisturbanceMatrix', [], ...
-                @(x) validateattributes(x, {'numeric'}, {'nrows', n}));
-            addOptional(p, 'w', srt.disturbances.Empty(), ...
+            addParameter(p, 'DisturbanceMatrix', [], ...
+                @(x) srt.systems.LtiSystem.validateDisturbanceMatrix(x));
+            addParameter(p, 'Disturbance', srt.disturbances.Empty(), ...
                 @(x) isa(x, 'srt.disturbances.RandomVector'));
             parse(p, varargin{:});
 
@@ -88,7 +88,7 @@ classdef ClohessyWiltshireHill < srt.systems.LtiSystem
             end
             
             obj = obj@srt.systems.LtiSystem(A, B, ...
-                p.Results.DisturbanceMatrix, p.Results.w)
+                p.Results.DisturbanceMatrix, p.Results.Disturbance)
 
             obj.T_ = p.Results.SamplingTime;
             obj.orbital_radius_ = p.Results.OrbitalRadius;

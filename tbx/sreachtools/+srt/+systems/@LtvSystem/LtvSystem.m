@@ -44,20 +44,26 @@ classdef LtvSystem < srt.systems.StochasticSystem
 
     methods
         function obj = LtvSystem(varargin)
+            obj = obj@srt.systems.StochasticSystem();
+
             p = inputParser();
             addOptional(p, 'A', [], @(x) validateattributes(x, ...
                 {'function_handle', 'numeric'}, {'square'}));
             addOptional(p, 'B', [], ...
                 @(x) isa(x, 'function_handle') || isa(x, 'numeric'));
             addOptional(p, 'F', [], ...
-                @(x) isa(x, 'function_handle') || isa(x, 'numeric'));
+                @(x) obj.validateDisturbanceMatrix(x));
             addOptional(p, 'w', srt.disturbances.Empty(), ...
                 @(x) isa(x, 'srt.disturbances.RandomVector'));
             parse(p, varargin{:});
 
             obj.A_ = p.Results.A;
             obj.B_ = p.Results.B;
-            obj.F_ = p.Results.F;
+            if ischar(p.Results.F)
+                obj.F_ = p.Results.B;
+            else
+                obj.F_ = p.Results.F;
+            end
             obj.w_ = p.Results.w;
 
             obj.X_ = srt.spaces.Rn(obj.n_);
@@ -214,6 +220,23 @@ classdef LtvSystem < srt.systems.StochasticSystem
                 end
             else
                 G = zeros(cn, 0);
+            end
+        end
+    end
+
+    methods (Static)
+        function valid = validateDisturbanceMatrix(F)
+            if isa(F, 'function_hanlde') || ...
+                (isa(F, 'numeric') && length(size(F)) == 2) || ...
+                (isa(F, 'char') && any(strcmp(F, {'InputMatrix', 'B'})))
+
+                valid = true;
+            else
+                error(sprintf(['Expected input to be one of these types:\n\n', ...
+                    'function_handle, double, single, uint8, uint16, ', ...
+                    'uint32, uint64, int8, int16, int32, int64\n\n', ...
+                    'Or should a character array matching either:\n\n', ...
+                    '''InputMatrix'', ''B''']));
             end
         end
     end

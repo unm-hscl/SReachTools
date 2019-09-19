@@ -16,8 +16,8 @@ classdef NdIntegrator < srt.systems.LtiSystem
                 {'scalar', 'integer', 'positive'}));
             addRequired(p, 'T', @(x) validateattributes(x, {'numeric'}, ...
                 {'scalar', 'positive'}));
-            addOptional(p, 'F', [], @(x) validateattributes(x, {'numeric'}, ...
-                {'nrows', n}));
+            addOptional(p, 'F', [], ...
+                @(x) srt.systems.LtiSystem.validateDisturbanceMatrix(x));
             addOptional(p, 'w', srt.disturbances.Empty(), ...
                 @(x) isa(x, 'srt.disturbances.RandomVector'));
         
@@ -40,7 +40,7 @@ classdef NdIntegrator < srt.systems.LtiSystem
                     A(i, j) = facT(T, j-i);
                 end
             end
-        
+
             obj = obj@srt.systems.LtiSystem(A, B, F, w);
         
             obj.T_ = T;
@@ -51,3 +51,4 @@ classdef NdIntegrator < srt.systems.LtiSystem
         end
     end
 end
+    
