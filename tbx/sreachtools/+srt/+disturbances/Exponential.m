@@ -26,6 +26,9 @@ classdef Exponential < srt.disturbances.RandomVector
 
             obj.rate_ = reshape(rate, [], 1);
             obj.n_ = length(obj.rate);
+
+            obj.sample_fun = @(n) exprnd(repmat(obj.rate_, ...
+                length(obj.rate_), n));
         end
 
         function val = get.Rate(obj)
@@ -36,12 +39,8 @@ classdef Exponential < srt.disturbances.RandomVector
             val = 1 ./ obj.Rate;
         end
 
-        function s = sample(obj)
-            s = exprnd(obj.Rate);
-        end
-
         function y = pdf(obj, x)
-             y = mvnpdf(x, obj.Rate);
+            y = exppdf(x, obj.Rate);
         end
 
         function rv = concat(obj, time_horizon)

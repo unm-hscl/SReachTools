@@ -10,24 +10,31 @@ classdef TerminalHitting < srt.problems.Problem
     methods
         function obj = TerminalHitting(varargin)
             % TERMINALHITTING Construct an instance of the problem.
-            if nargin
+            p = inputParser;
+            addParameter(p, 'ConstraintTube', srt.Tube.empty, ...
+                @(x) isa(x, 'srt.Tube'));
+            addParameter(p, 'TargetTube', srt.Tube.empty, ...
+                @(x) isa(x, 'srt.Tube'));
+            parse(p, varargin{:});
 
-                p = inputParser;
-                addParameter(p, 'ConstraintTube', srt.Tube.empty);
-                addParameter(p, 'TargetTube', srt.Tube.empty);
-                parse(p, varargin{:});
+            obj = obj@srt.problems.Problem();
 
-                % Ensure T in K?
+            obj.TargetTube = p.Results.TargetTube;
+            obj.ConstraintTube = p.Results.ConstraintTube;
 
-                obj.constraint_tube_ = p.Results.ConstraintTube;
-                obj.target_tube_ = p.Results.TargetTube;
+            % Ensure T in K?
 
-                assert(length(obj.constraint_tube_) == ...
-                       length(obj.target_tube_));
+            assert(length(obj.constraint_tube_) == ...
+                    length(obj.target_tube_));
 
-            else
-                error('Invalid problem definition.');
-            end
+        end
+
+        function tube = get.ConstraintTube(obj)
+            tube = obj.constraint_tube_;
+        end
+
+        function tube = get.TargetTube(obj)
+            tube = obj.target_tube_;
         end
     end
 

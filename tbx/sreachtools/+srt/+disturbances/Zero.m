@@ -12,10 +12,7 @@ classdef Zero < srt.disturbances.RandomVector
 
             obj@srt.disturbances.RandomVector()
             obj.n_ = p.Results.n;
-        end
-
-        function s = sample(obj)
-            s = zeros(obj.n_, 1);
+            obj.sample_fun_ = @(n) zeros(obj.n_, n);
         end
 
         function rv = concat(obj)

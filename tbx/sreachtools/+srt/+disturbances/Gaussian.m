@@ -36,6 +36,7 @@ classdef Gaussian < srt.disturbances.RandomVector
             obj.sigma_ = sigma;
 
             obj.n_ = length(obj.mu_);
+            obj.sample_fun_ = @(n) mvnrnd(obj.mu_, obj.sigma_, n);
         end
     
         function val = get.Mu(obj)
