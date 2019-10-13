@@ -36,8 +36,8 @@ classdef (Abstract) Problem < handle
             T = obj.constraint_tube_;
         end
         function set.ConstraintTube(obj, T)
-            if isa(K, function_handle)
-                K = Function(K);
+            if isa(T, 'function_handle')
+                T = Function(T);
             end
             obj.constraint_tube_ = T;
         end
@@ -46,8 +46,8 @@ classdef (Abstract) Problem < handle
             T = obj.target_tube_;
         end
         function set.TargetTube(obj, T)
-            if isa(K, function_handle)
-                K = Function(K);
+            if isa(T, 'function_handle')
+                T = Function(T);
             end
             obj.target_tube_ = T;
         end

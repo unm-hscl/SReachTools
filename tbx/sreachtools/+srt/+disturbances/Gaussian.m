@@ -40,11 +40,11 @@ classdef Gaussian < srt.disturbances.RandomVector
         end
     
         function val = get.Mu(obj)
-            val = obj.mu_
+            val = obj.mu_;
         end
 
         function val = get.Sigma(obj)
-            val = obj.sigma_
+            val = obj.sigma_;
         end
 
         function val = get.Mean(obj)

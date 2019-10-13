@@ -29,13 +29,13 @@ classdef TerminalHitting < srt.problems.Problem
 
         end
 
-        function tube = get.ConstraintTube(obj)
-            tube = obj.constraint_tube_;
-        end
+        % function tube = get.ConstraintTube(obj)
+        %     tube = obj.constraint_tube_;
+        % end
 
-        function tube = get.TargetTube(obj)
-            tube = obj.target_tube_;
-        end
+        % function tube = get.TargetTube(obj)
+        %     tube = obj.target_tube_;
+        % end
     end
 
 end

@@ -86,6 +86,26 @@ classdef Tube
             end
         end
 
+        function tube = concat(obj, S)
+            if isa(S, 'srt.Tube')
+                tube = srt.Tube([obj.tube, S(:)]);
+            elseif isa(S, 'Polyhedron') || isa(S, 'Function')
+                tube = srt.Tube([obj.tube, S]);
+            else
+                error('Cannot concatenate Tube and %s.', class(S))
+            end
+        end
+
+        function bl = isPolyhedronTube(obj)
+            bl = true;
+            for S = obj.tube
+                if ~isa(S, 'Polyhedron')
+                    bl = false;
+                    break;
+                end
+            end
+        end
+
         function v = end(obj, ~, ~)
             v = length(obj);
         end

@@ -4,7 +4,7 @@ classdef RandomVector
     end
 
     methods
-        function RandomVector(varargin)
+        function obj = RandomVector(varargin)
             p = inputParser();
             addOptional(p, 'sample_fun', @(n) [], ...
                 @(x) isa(x, {'function_handle'}));

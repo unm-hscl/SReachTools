@@ -1,4 +1,4 @@
-function results = SReachSet(prb, alg, sys, varargin)
+function results = SReachSet(prb, alg, sys, lev, varargin)
 % SREACHSET Stochastic reachability.
 %
 %   SREACHSET(...) stochastic reachability for a set.
@@ -7,7 +7,8 @@ function results = SReachSet(prb, alg, sys, varargin)
 %       prob = srt.problems.FirstHittingTime();
 %       alg = srt.algorithms.DynamicProgramming();
 %       sys = srt.systems.StochasticLTISystem();
-%       SReachSet(prob, alg, sys);
+%       lev = 0.8
+%       SReachSet(prob, alg, sys, lev);
 %
 %   See also: SReachForward, SReachPoint
 %
@@ -17,6 +18,8 @@ import srt.*
 
 p = inputParser;
 
+vallev   = @(arg) validateattributes(arg, {'numeric'}, ...
+    {'scalar', 'nonnegative', '<=', 1});
 valprob = @(arg) isa(arg, 'srt.problems.Problem');
 valalg  = @(arg) isa(arg, 'srt.algorithms.Algorithm');
 valsys  = @(arg) isa(arg, 'srt.systems.StochasticSystem');
@@ -24,8 +27,9 @@ valsys  = @(arg) isa(arg, 'srt.systems.StochasticSystem');
 addRequired(p, 'prb', valprob);
 addRequired(p, 'alg', valalg);
 addRequired(p, 'sys', valsys);
-parse(p, prb, alg, sys);
+addRequired(p, 'lev', vallev);
+parse(p, prb, alg, sys, lev);
 
-results = alg.compute_set(prb, sys, varargin{:});
+results = alg.compute_set(prb, sys, lev, varargin{:});
 
 end

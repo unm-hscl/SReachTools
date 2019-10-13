@@ -45,7 +45,8 @@
 % practice, this can be turned off.
 
 % Prescript running: Initializing srtinit, if it already hasn't been initialized
-close all;clearvars;srtinit;
+close all;
+clearvars;
 
 %% Problem Definition
 % In this example we will look at the viability problem for a double integrator. 
@@ -64,10 +65,11 @@ close all;clearvars;srtinit;
 T = 0.25;
 
 % define the system
-sys = getChainOfIntegLtiSystem(2, ...
-    T, ...
-    Polyhedron('lb', -0.1, 'ub', 0.1), ...
-     RandomVector('Gaussian', zeros(2,1), 0.001*eye(2)));
+sys = srt.systems.NdIntegrator(2, 0.25, eye(2), ...
+    srt.disturbances.Gaussian(zeros(2, 1), 0.005 * eye(2)));
+
+% Setup the algorithm to be used
+alg = srt.algorithms.LagrangianUnder('verbose', 1);
 
 %% Viability problem as a stochastic reachability of a target tube problem
 % We examine the viability problem in which we are interested in staying in 
@@ -76,33 +78,44 @@ sys = getChainOfIntegLtiSystem(2, ...
 % posed as a viability problem by constructing a target tube in which all sets 
 % in the tube are the safe set.
 %%
-time_horizon = 5;
+N = 11;
 
-% safe set definition
-safe_set = Polyhedron('lb', [-1, -1], 'ub', [1, 1]);
-% target tube definition
-target_tube = Tube('viability', safe_set, time_horizon);
+% Input space
+U = Polyhedron('lb', [-1], 'ub', [1]);
+
+% constraint set definition
+constr_set = Polyhedron('lb', [-1, -1], 'ub', [1, 1]);
+
+% constraint tube definition
+constr_tube = srt.Tube(N, constr_set);
+
+% target tube definitions
+target_tube = srt.Tube(N, constr_set);
+
 % probability threshold desired
-beta = 0.8;
-% Plotting of target tube
-figure(1)
-clf
-hold on    
-for time_indx = 0:time_horizon
-    target_tube_at_time_indx = Polyhedron('H',...
-        [target_tube(time_indx+1).A, ...
-        zeros(size(target_tube(time_indx+1).A,1),1), ...
-        target_tube(time_indx+1).b], 'He',[0 0 1 time_indx]);
-    plot(target_tube_at_time_indx, 'alpha',0.25);
+lev = 0.8;
+
+prob = srt.problems.TerminalHitting('ConstraintTube', constr_tube, ...
+    'TargetTube', target_tube);
+
+
+result = SReachSet(prob, alg, sys, lev, U);
+
+hf = figure();
+hold on;
+for lv = length(result.ReachTube):-1:1
+    d = length(result.ReachTube) - lv;
+    if d > 0
+        c = [1, 0, 0] + [0, 1 * d / (length(result.ReachTube) - 1), 0];
+    else
+        c = [1, 0, 0];
+    end
+
+    plot(result.ReachTube(lv), 'Color', c);
 end
-axis([-1 1 -1 1 0 time_horizon]);    
-box on;
-grid on;
-xlabel('x');
-ylabel('y');
-zlabel('time');
-title('Target tube');
-axis equal;
+hold off;
+
+return;
 
 %% Lagrangian underapproximation for stochastic reachability of a target tube
 % |SReachSet| can compute Lagrangian underapproximation via multiple
@@ -125,7 +138,7 @@ luOpts1 = SReachSetOptions('term', 'lag-under', 'bound_set_method', ...
     'ellipsoid', 'verbose',1,'compute_style','vfmethod');
 luOpts_time(1) = toc(timerVal);
 timerVal=tic;
-luSet(1) = SReachSet('term', 'lag-under', sys, beta, target_tube, luOpts1);
+luSet(1) = SReachSet('term', 'lag-under', sys, lev, target_tube, luOpts1);
 lagrange_under_time(1) = toc(timerVal);
 %% Underapprox. type 2: Bound_set_method - Ellipsoid | Compute_style - Support
 % Compared to type 1, this method will result in more conservative
@@ -138,7 +151,7 @@ luOpts2 = SReachSetOptions('term', 'lag-under', 'bound_set_method', ...
     'verbose',1,'compute_style','support');
 luOpts_time(2) = toc(timerVal);
 timerVal=tic;
-luSet(2) = SReachSet('term', 'lag-under', sys, beta, target_tube, luOpts2);
+luSet(2) = SReachSet('term', 'lag-under', sys, lev, target_tube, luOpts2);
 lagrange_under_time(2) = toc(timerVal);
 %% Underapprox. type 3: Bound_set_method - Polytope | Compute_style - VFmethod
 % Compared to type 1, this method will result in more conservative
@@ -150,7 +163,7 @@ luOpts3 = SReachSetOptions('term', 'lag-under', 'bound_set_method', ...
     Polyhedron('lb',-ones(sys.dist.dim,1),'ub',ones(sys.dist.dim,1)));
 luOpts_time(3) = toc(timerVal);
 timerVal=tic;
-luSet(3) = SReachSet('term', 'lag-under', sys, beta, target_tube, luOpts3);
+luSet(3) = SReachSet('term', 'lag-under', sys, lev, target_tube, luOpts3);
 lagrange_under_time(3) = toc(timerVal);
 %% Underapprox. type 3: Bound_set_method - Polytope | Compute_style - Support
 % Compared to type 1, this method will result in more conservative
@@ -163,7 +176,7 @@ luOpts4 = SReachSetOptions('term', 'lag-under', 'bound_set_method', ...
     Polyhedron('lb',-ones(sys.dist.dim,1),'ub',ones(sys.dist.dim,1)));
 luOpts_time(4) = toc(timerVal);
 timerVal=tic;
-luSet(4) = SReachSet('term', 'lag-under', sys, beta, target_tube, luOpts4);
+luSet(4) = SReachSet('term', 'lag-under', sys, lev, target_tube, luOpts4);
 lagrange_under_time(4) = toc(timerVal);
 
 %% Lagrangian overapproximation for stochastic reachability of a target tube
@@ -187,7 +200,7 @@ loOpts1 = SReachSetOptions('term', 'lag-over', 'bound_set_method', ...
     'ellipsoid', 'verbose', 1, 'compute_style','vfmethod');
 loOpts_time(1) = toc(timerVal);
 timerVal=tic;
-loSet(1) = SReachSet('term', 'lag-over', sys, beta, target_tube, loOpts1);
+loSet(1) = SReachSet('term', 'lag-over', sys, lev, target_tube, loOpts1);
 lagrange_over_time(1) = toc(timerVal);
 %% Overapprox. type 2: Bound_set_method - Ellipsoid | Compute_style - Support
 % Compared to type 1, this method will provide an overapproximative solution but
@@ -198,7 +211,7 @@ loOpts2 = SReachSetOptions('term', 'lag-over', 'bound_set_method', ...
     'n_vertices', 2^n_dim_over * 7+2*n_dim_over);
 loOpts_time(2) = toc(timerVal);
 timerVal=tic;
-loSet(2) = SReachSet('term', 'lag-over', sys, beta, target_tube, loOpts2);
+loSet(2) = SReachSet('term', 'lag-over', sys, lev, target_tube, loOpts2);
 lagrange_over_time(2) = toc(timerVal);
 %% Overapprox. type 3: Bound_set_method - Polytope | Compute_style - VFmethod
 % Compared to type 1, this method will result in more conservative
@@ -210,7 +223,7 @@ loOpts3 = SReachSetOptions('term', 'lag-over', 'bound_set_method', ...
     'compute_style','vfmethod');
 loOpts_time(3) = toc(timerVal);
 timerVal=tic;
-loSet(3) = SReachSet('term', 'lag-over', sys, beta, target_tube, loOpts3);
+loSet(3) = SReachSet('term', 'lag-over', sys, lev, target_tube, loOpts3);
 lagrange_over_time(3) = toc(timerVal);
 %% Overapprox. type 4: Bound_set_method - Polytope | Compute_style - Support
 % Compared to type 1, this method will result in more conservative
@@ -224,7 +237,7 @@ loOpts4 = SReachSetOptions('term', 'lag-over', 'bound_set_method', ...
     'n_vertices', 2^n_dim_over* 7 +2*n_dim_over);
 loOpts_time(4) = toc(timerVal);
 timerVal=tic;
-loSet(4) = SReachSet('term', 'lag-over', sys, beta, target_tube, loOpts4);
+loSet(4) = SReachSet('term', 'lag-over', sys, lev, target_tube, loOpts4);
 lagrange_over_time(4) = toc(timerVal);
                    
 
@@ -240,9 +253,9 @@ tic;
     dyn_prog_uinc, target_tube);
 dynprog_time = toc();
 %%
-% Compute the beta-stochastic level set
+% Compute the pl-stochastic level set
 %
-dyn_soln_lvl_set=getDynProgLevelSets2D(cell_of_xvec, prob_x, beta, target_tube);
+dyn_soln_lvl_set=getDynProgLevelSets2D(cell_of_xvec, prob_x, lev, target_tube);
 %% Simulation times: Lagrangian approximation beats dynamic programming 
 % The simulation times for Lagrangian computation is much faster (in most
 % cases) than dynamic programming. Further, dynamic programming solution
@@ -280,7 +293,7 @@ fprintf('   Dynamic programming: %.3f\n', dynprog_time);
 %%
 figure(2);
 clf
-plot(safe_set, 'color', 'k');
+plot(constr_set, 'color', 'k');
 hold on;
 plot(loSet(2), 'color', 'y','alpha',1);
 plot(loSet(1), 'color', 'r','alpha',0.5);
@@ -303,7 +316,7 @@ axis tight;
 
 figure(3);
 clf
-plot(safe_set, 'color', 'k');
+plot(constr_set, 'color', 'k');
 hold on;
 plot(loSet(4), 'color', 'y','alpha',1);
 plot(loSet(3), 'color', 'r','alpha',0.5);

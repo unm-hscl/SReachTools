@@ -52,6 +52,13 @@ classdef SReachEllipsoid
 % 
 % 
 
+    properties (Dependent)
+        Center
+
+        Sigma
+    end
+
+
     properties
         % SReachEllipsoid/center
         % ==================================================================
