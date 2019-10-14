@@ -53,7 +53,7 @@ classdef LtvSystem < srt.systems.StochasticSystem
                 @(x) isa(x, 'function_handle') || isa(x, 'numeric'));
             addOptional(p, 'F', [], ...
                 @(x) obj.validateDisturbanceMatrix(x));
-            addOptional(p, 'w', srt.disturbances.Empty(), ...
+            addOptional(p, 'w', srt.disturbances.RandomVector(), ...
                 @(x) isa(x, 'srt.disturbances.RandomVector'));
             parse(p, varargin{:});
 
@@ -69,7 +69,21 @@ classdef LtvSystem < srt.systems.StochasticSystem
             obj.X_ = srt.spaces.Rn(obj.n_);
 
             obj.n_ = size(obj.A(1), 2);
+
+            if size(obj.B(1), 1) > 0 && size(obj.B(1), 1) ~= obj.n_
+                error(['Input matrix must be empty or have same number ', ...
+                    'of rows as the state matrix.']);
+            end
             obj.p_ = size(obj.B(1), 2);
+
+            if size(obj.F(1), 1) > 0 && size(obj.F(1), 1) ~= obj.n_
+                error(['Disturbance matrix must be empty or have same ', ...
+                    'number of rows as the state matrix.']);
+            end
+            if size(obj.F(1), 2) ~= length(obj.w_.sample())
+                error(['Disturbance matrix and disturbance dimensions do ', ...
+                    'not match, i.e. size(F, 2) ~= length(w.sample()).']);
+            end
             obj.q_ = size(obj.F(1), 2);
 
         end
@@ -99,24 +113,30 @@ classdef LtvSystem < srt.systems.StochasticSystem
             addRequired(p, 'k', @(x) validateattributes(x, {'numeric'}, ...
                 {'scalar', 'integer', 'positive'}));
             addRequired(p, 'x', @(x) validateattributes(x, {'numeric'}, ...
-                {'vector'}));
+                {'vector', 'numel', obj.n_}));
             addOptional(p, 'u', [], ...
-                @(x) validateattributes(x, {'numeric'}, {'vector'}));
+                @(x) validateattributes(x, {'numeric'}, ...
+                    {'vector', 'numel', obj.p_}));
             addOptional(p, 'w', [], ...
-                @(x) validateattributes(x, {'numeric'}, {'vector'}));
+                @(x) validateattributes(x, {'numeric'}, ...
+                    {'vector', 'numel', obj.q_}));
             parse(p, k, x, varargin{:});
 
             x = reshape(x, [], 1);
-            u = reshape(p.Results.u, [], 1);
-            if isempty(p.Results.w)
-                w = obj.w_.sample();
-            else
-                w = reshape(p.Results.w, [], 1);
-            end
-
             Ax = obj.A(k) * x;
+
+            if obj.p_ > 0 && any(strcmp('u', p.UsingDefaults))
+                error(['No input provided to LtvSystem with nonzero ', ...
+                    'input dimension']);
+            end
+            u = reshape(p.Results.u, [], 1);
             Bu = obj.B(k) * u;
-            Fw = obj.F(k) * w;
+
+            if obj.q_ > 0 && any(strcmp('w', p.UsingDefaults))
+                Fw = obj.F(k) * obj.w_;
+            else
+                Fw = obj.F(k) * p.Results.w;
+            end
 
             if isempty(Ax) && isempty(Bu) && isempty(Fw)
                 xp = [];
@@ -235,7 +255,7 @@ classdef LtvSystem < srt.systems.StochasticSystem
                 error(sprintf(['Expected input to be one of these types:\n\n', ...
                     'function_handle, double, single, uint8, uint16, ', ...
                     'uint32, uint64, int8, int16, int32, int64\n\n', ...
-                    'Or should a character array matching either:\n\n', ...
+                    'Or should be a character array matching either:\n\n', ...
                     '''InputMatrix'', ''B''']));
             end
         end

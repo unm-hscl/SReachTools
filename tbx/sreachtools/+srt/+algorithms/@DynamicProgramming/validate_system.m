@@ -6,7 +6,7 @@ validateattributes(system, {'StochasticSystem'}, {'nonempty'});
 supportedSystems = {'StochasticLTISystem'};
 
 if ~ismember(class(system), supportedSystems)
-  error('System is not supported.');
+    error('System is not supported.');
 end
 
 end

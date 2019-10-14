@@ -28,7 +28,8 @@
 %
 
 % Prescript running: Initializing srtinit, if it already hasn't been initialized
-close all;clearvars;srtinit;
+close all;
+clearvars;
 
 %% Problem setup
 % In this example we use a discretized double integrator dynamics given by:
@@ -54,11 +55,12 @@ close all;clearvars;srtinit;
 T = 0.1;
 
 % define the system
-sys = LtiSystem('StateMatrix', [1, T; 0, 1], ...
-    'InputMatrix', [T^2/2; T], ...
-    'InputSpace', Polyhedron('lb', -0.1, 'ub', 0.1), ...
-    'DisturbanceMatrix', eye(2), ...
-    'Disturbance', RandomVector('Gaussian', zeros(2,1), 0.01*eye(2)));
+sys = srt.systems.NdIntegrator(2, T, 'F', eye(2), ...
+    'w', srt.disturbances.Gaussian(zeros(2, 1), 0.01*eye(2)));
+
+alg = srt.algorithms.DynamicProgramming('verbose', 1);
+alg.StateSpaceGrid = {2, -1:0.05:1};
+alg.InputSpaceGrid = -1:0.5:1;
 
 % Parameters for dynamic programming and visualization
 % ----------------------------------------------------
@@ -101,8 +103,15 @@ legend_str={'Safety tube at k=0', 'Safety Probability $\geq 0.2$', ...
 N = 5;
 % The viability problem is equivalent to a stochastic reachability of a target 
 % tube of repeating safe sets
-safe_set = Polyhedron('lb', [-1, -1], 'ub', [1, 1]);
-safety_tube1 = Tube('viability', safe_set, N);
+constr_tube = srt.Tube(N, Polyhedron('lb', [-1, -1], 'ub', [1, 1]));
+target_tube = srt.Tube(N, Polyhedron('lb', [-1, -1], 'ub', [1, 1]));
+
+prob = srt.problems.TerminalHitting('ConstraintTube', constr_tube, ...
+    'TargetTube', target_tube);
+
+result = SReachPoint(prob, alg, sys, 0);
+
+return;
 
 % Plotting of safety tube
 % -----------------------

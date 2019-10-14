@@ -61,7 +61,7 @@ classdef Gaussian < srt.disturbances.RandomVector
         end
 
         function v = pdf(obj, x)
-            v = mvnpdf(x, obj.mu_, obj.sigma_);
+            v = mvnpdf(x, obj.mu_', obj.sigma_);
         end
 
         function ss = sampleSpace(obj)
@@ -72,6 +72,47 @@ classdef Gaussian < srt.disturbances.RandomVector
             rv = srt.disturbances.Gaussian( ...
                 kron(ones(time_horizon, 1), obj.mu_), ...
                 kron(eye(time_horizon), obj.sigma_));
+        end
+
+        function rv = plus(A, B)
+            if isa(A, 'srt.disturbances.Gaussian')
+                rv = srt.disturbances.Gaussian(A.mu_ + B, A.sigma_);
+            else
+                rv = srt.disturbances.Gaussian(B.mu_ + A, B.sigma_);
+            end
+        end
+
+        function rv = minus(A, B)
+            if isa(A, 'srt.disturbances.Gaussian')
+                rv = srt.disturbances.Gaussian(A.mu_ - B, A.sigma_);
+            else
+                rv = srt.disturbances.Gaussian(B.mu_ - A, B.sigma_);
+            end
+        end
+
+        function rv = times(A, B)
+            if isa(A, 'srt.disturbances.Gaussian')
+                rv = srt.disturbances.Gaussian(B * A.mu_, B^2 * A.sigma_);
+            else
+                rv = srt.disturbances.Gaussian(A * B.mu_, A^2 * B.sigma_);
+            end
+        end
+
+        function rv = mtimes(A, B)
+            if isa(A, 'srt.disturbances.Gaussian')
+                error(['Right matrix multiplication not supported for ', ...
+                    'srt.disturbances.Gaussian']);
+            else
+                s = B.sample();
+                if size(A, 2) ~= length(s)
+                    error(['Incorrect dimensions for matrix multiplication. ', ...
+                        'Check that the number of columns in the matrix ', ...
+                        'matches the lenght of a sample. To perform ', ...
+                        'elementwise multiplication, use ''.*''.']);
+                end
+
+                rv = srt.disturbances.Gaussian(A * B.mu_, A' * B.sigma_ * A);
+            end
         end
     end
 end
