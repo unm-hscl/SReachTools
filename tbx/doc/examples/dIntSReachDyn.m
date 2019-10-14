@@ -104,9 +104,9 @@ N = 5;
 % The viability problem is equivalent to a stochastic reachability of a target 
 % tube of repeating safe sets
 constr_tube = srt.Tube(N, Polyhedron('lb', [-1, -1], 'ub', [1, 1]));
-target_tube = srt.Tube(N, Polyhedron('lb', [-1, -1], 'ub', [1, 1]));
+target_tube = srt.Tube(N, Polyhedron('lb', [-0.5, -0.5], 'ub', [0.5, 0.5]));
 
-prob = srt.problems.TerminalHitting('ConstraintTube', constr_tube, ...
+prob = srt.problems.FirstHitting('ConstraintTube', constr_tube, ...
     'TargetTube', target_tube);
 
 result = SReachPoint(prob, alg, sys, 0);

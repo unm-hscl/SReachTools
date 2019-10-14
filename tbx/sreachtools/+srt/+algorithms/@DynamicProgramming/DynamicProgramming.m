@@ -114,9 +114,10 @@ classdef DynamicProgramming < srt.algorithms.Algorithm
                     target_set = prob.TargetTube(lv);
                     for ix = 1:size(obj.ss_grid_, 1)
                         if target_set.contains(obj.ss_grid_(ix, :)')
+                            result.prob(ix, lv) = 1;
                             continue;
                         end
-                        
+
                         if ~safe_set.contains(obj.ss_grid_(ix, :)')
                             continue;
                         end
@@ -139,6 +140,7 @@ classdef DynamicProgramming < srt.algorithms.Algorithm
                             end
                         end
                     end
+                end
             elseif isa(prob, 'srt.problems.TerminalHitting')
                 % Terminal hitting time recursion
                 result.prob = zeros(size(obj.ss_grid_, 1), N);
