@@ -34,6 +34,7 @@ Vk = zeros(N, M);
 
 cxy = obj.compute_cross_covariance(sys.X, sys.Y, obj.Sigma);
 cuv = obj.compute_cross_covariance(sys.U, sys.U, obj.Sigma);
+
 beta = cxy.*cuv;
 beta = W*beta; %#ok<*MINV>
 beta = algorithms.KernelEmbeddings.normalize_beta(beta);
@@ -74,6 +75,7 @@ Pr = zeros(N, mt);
 
 cxt = obj.compute_cross_covariance(sys.X, x0, obj.Sigma);
 cut = obj.compute_cross_covariance(sys.U, u0, obj.Sigma);
+
 beta = cxt.*cut;
 beta = W*beta;
 beta = obj.normalize_beta(beta);
