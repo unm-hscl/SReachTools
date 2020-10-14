@@ -1,4 +1,4 @@
-function [concat_tube_A, concat_tube_b] = concat(obj,varargin)
+function [concat_tube_A, concat_tube_b] = concatenate(obj,varargin)
     %% Construction of the concatenated tube
     tube_A_mats = cell(1, length(obj));
     [tube_A_mats{:}] = obj.tube(:).A;

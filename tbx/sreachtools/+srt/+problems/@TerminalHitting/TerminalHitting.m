@@ -8,34 +8,27 @@ classdef TerminalHitting < srt.problems.Problem
 %   See also: FirstHitting, MaximalHitting, Viability
 
     methods
-        function obj = TerminalHitting(varargin)
+
+        function obj = TerminalHitting(options)
             % TERMINALHITTING Construct an instance of the problem.
-            p = inputParser;
-            addParameter(p, 'ConstraintTube', srt.Tube.empty, ...
-                @(x) isa(x, 'srt.Tube'));
-            addParameter(p, 'TargetTube', srt.Tube.empty, ...
-                @(x) isa(x, 'srt.Tube'));
-            parse(p, varargin{:});
+
+            arguments
+                options.ConstraintTube (1, 1) srt.Tube
+                options.TargetTube (1, 1) srt.Tube
+            end
 
             obj = obj@srt.problems.Problem();
 
-            obj.TargetTube = p.Results.TargetTube;
-            obj.ConstraintTube = p.Results.ConstraintTube;
-
             % Ensure T in K?
 
-            assert(length(obj.constraint_tube_) == ...
-                    length(obj.target_tube_));
+            assert(length(options.ConstraintTube) == ...
+                   length(options.TargetTube));
+
+            obj.TargetTube = options.TargetTube;
+            obj.ConstraintTube = options.ConstraintTube;
 
         end
 
-        % function tube = get.ConstraintTube(obj)
-        %     tube = obj.constraint_tube_;
-        % end
-
-        % function tube = get.TargetTube(obj)
-        %     tube = obj.target_tube_;
-        % end
     end
 
 end

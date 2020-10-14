@@ -4,7 +4,7 @@ classdef (Abstract) Algorithm < handle
 %   Copyright 2019 Adam Thorpe
 
     properties (Access = private)
-        verbose_(1, 1) double {mustBeNonnegative} = 0;
+        verbose_ (1, 1) double {mustBeNonnegative} = 0;
     end
 
     methods
@@ -13,10 +13,10 @@ classdef (Abstract) Algorithm < handle
 
             p = inputParser;
             p.KeepUnmatched = true;
-            addParameter(p, 'verbose', 0);
+            addParameter(p, 'Verbose', 0);
             parse(p, varargin{:});
 
-            obj.verbose_ = p.Results.verbose;
+            obj.verbose_ = p.Results.Verbose;
 
             % Validate algorithm dependencies.
             obj.validatedependencies();

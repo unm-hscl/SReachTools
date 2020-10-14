@@ -7,20 +7,20 @@ classdef Viability < srt.problems.Problem
 %   See also: FirstHitting, MaximalHitting, TerminalHitting
 
     methods
-        function obj = Viability(varargin)
+
+        function obj = Viability(options)
             % VIABILITY Construct an instance of the problem.
-            if nargin
 
-                p = inputParser;
-                addParameter(p, 'ConstraintTube', srt.Tube.empty);
-                parse(p, varargin{:});
-
-                obj.constraint_tube_ = p.Results.ConstraintTube;
-
-            else
-                error('Invalid problem definition.');
+            arguments
+                options.ConstraintTube (1, 1) srt.Tube
             end
+
+            obj = obj@srt.problems.Problem();
+
+            obj.ConstraintTube = options.ConstraintTube;
+
         end
+
     end
 
 end

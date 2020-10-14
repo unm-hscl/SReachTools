@@ -52,15 +52,15 @@ clearvars;
 % System definition
 % -----------------
 % discretization parameter
-T = 0.1;
+T = 0.25;
 
 % define the system
 sys = srt.systems.NdIntegrator(2, T, 'F', eye(2), ...
     'w', srt.disturbances.Gaussian(zeros(2, 1), 0.01*eye(2)));
 
 alg = srt.algorithms.DynamicProgramming('verbose', 1);
-alg.StateSpaceGrid = {2, -1:0.05:1};
-alg.InputSpaceGrid = -1:0.5:1;
+alg.StateSpaceGrid = {2, linspace(-1, 1, 100)};
+alg.InputSpaceGrid = [0, 0];
 
 % Parameters for dynamic programming and visualization
 % ----------------------------------------------------
@@ -104,16 +104,23 @@ N = 5;
 % The viability problem is equivalent to a stochastic reachability of a target 
 % tube of repeating safe sets
 constr_tube = srt.Tube(N, Polyhedron('lb', [-1, -1], 'ub', [1, 1]));
-target_tube = srt.Tube(N, Polyhedron('lb', [-0.5, -0.5], 'ub', [0.5, 0.5]));
+target_tube = srt.Tube(N, Polyhedron('lb', [-1, -1], 'ub', [1, 1]));
 
-prob = srt.problems.FirstHitting('ConstraintTube', constr_tube, ...
+prob = srt.problems.TerminalHitting('ConstraintTube', constr_tube, ...
     'TargetTube', target_tube);
 
+tic
 result = SReachPoint(prob, alg, sys, 0);
-
+toc
 return;
 
-% Plotting of safety tube
+%%
+PrDP = zeros(5, 100, 100);
+for k = 1:N
+    PrDP(k, :, :) = reshape(result.prob(:, k), 100, 100).';
+end
+
+%% Plotting of safety tube
 % -----------------------
 figure()
 hold on    
@@ -133,6 +140,7 @@ xlabel('$x_1$','interpreter','latex');
 ylabel('$x_2$','interpreter','latex');
 zlabel('time');
 title('Safety tube');
+hold off
 %%
 
 % Dynamic programming recursion via gridding

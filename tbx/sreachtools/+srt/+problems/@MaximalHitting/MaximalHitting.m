@@ -7,6 +7,7 @@ classdef MaximalHitting < srt.problems.Problem
 %   See also: FirstHitting, TerminalHitting, Viability
 
     methods
+
         function obj = MaximalHitting(N, K, T, varargin)
             p = inputParser;
             addRequired(p, 'N');
@@ -18,6 +19,7 @@ classdef MaximalHitting < srt.problems.Problem
             obj.safe_set_ = K;
             obj.target_set_ = T;
         end
+
     end
 
     methods

@@ -1,7 +1,10 @@
 function validatesystem(obj, system)
 % VALIDATESYSTEM Checks if the system is valid for the algorithm.
 
-validateattributes(system, {'srt.systems.StochasticSystem'}, {'nonempty'});
+arguments
+    obj
+    system (1, 1) srt.systems.StochasticSystem {mustBeNonempty}
+end
 
 supportedSystems = {'srt.systems.SampledSystem'};
 

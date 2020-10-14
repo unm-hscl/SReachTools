@@ -38,7 +38,7 @@ classdef Gaussian < srt.disturbances.RandomVector
             obj.n_ = length(obj.mu_);
             obj.sample_fun_ = @(n) mvnrnd(obj.mu_, obj.sigma_, n);
         end
-    
+
         function val = get.Mu(obj)
             val = obj.mu_;
         end
@@ -111,7 +111,8 @@ classdef Gaussian < srt.disturbances.RandomVector
                         'elementwise multiplication, use ''.*''.']);
                 end
 
-                rv = srt.disturbances.Gaussian(A * B.mu_, A' * B.sigma_ * A);
+                rv = srt.disturbances.Gaussian(A * B.mu_, A * B.sigma_ * A');
+                % rv = srt.disturbances.Gaussian(A * B.mu_, A' * B.sigma_ * A);
             end
         end
     end

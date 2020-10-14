@@ -6,10 +6,10 @@
 % Specify the time horizon, the safe set $\mathcal{K}$, and the target set
 % $\mathcal{T}$.
 
-N = 3;
+N = 5;
 K = srt.Tube(N, Polyhedron('lb', [-1; -1], 'ub', [1; 1]));
 
-prb = srt.problems.Viability('ConstraintTube', K);
+problem = srt.problems.Viability('ConstraintTube', K);
 
 %% System Definition
 % Generate input/output samples for a double integrator system.
@@ -44,7 +44,7 @@ s = linspace(-1, 1, 100);
 X = sampleunif(s, s);
 U = zeros(1, size(X, 2));
 
-results = SReachPoint(prb, alg, sys, X, U);
+results = SReachPoint(problem, alg, sys, X, U);
 
 %%
 % View the results.

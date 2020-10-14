@@ -1,15 +1,9 @@
-function validateproblem(obj, prob)
+function validateproblem(obj, problem)
 % VALIDATEPROBLEM Validate problem.
 
-validateattributes(problem, {'Problem'}, {'nonempty'});
-
-if ~ismember(class(problem), {'TerminalHitting'})
-  error('Problem is not supported.');
+arguments
+    obj
+    problem (1, 1) srt.problems.TerminalHitting {mustBeNonempty}
 end
-
-% if ~(strcmpi(options.prob_str, 'term') &&...
-%         strcmpi(options.method_str, 'chance-affine'))
-%     throwAsCaller(SrtInvalidArgsError('Invalid options provided'));
-% end
 
 end

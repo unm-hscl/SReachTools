@@ -1,7 +1,11 @@
 classdef LtvSystem < srt.systems.StochasticSystem
+
     properties (Dependent)
         % STATESPACE State Space of the system
         StateSpace
+
+        % INPUTSPACE Input Space of the system
+        InputSpace
 
         % DISTURBANCE Disturbance object for the system
         Disturbance
@@ -32,6 +36,9 @@ classdef LtvSystem < srt.systems.StochasticSystem
         % X_ State Space
         X_
 
+        % U_ Input Space
+        U_
+
         % N_ State dimension
         n_
 
@@ -47,6 +54,7 @@ classdef LtvSystem < srt.systems.StochasticSystem
             obj = obj@srt.systems.StochasticSystem();
 
             p = inputParser();
+            p.KeepUnmatched = true;
             addOptional(p, 'A', [], @(x) validateattributes(x, ...
                 {'function_handle', 'numeric'}, {'square'}));
             addOptional(p, 'B', [], ...
@@ -55,6 +63,9 @@ classdef LtvSystem < srt.systems.StochasticSystem
                 @(x) obj.validateDisturbanceMatrix(x));
             addOptional(p, 'w', srt.disturbances.RandomVector(), ...
                 @(x) isa(x, 'srt.disturbances.RandomVector'));
+
+            addParameter(p, 'InputSpace', Polyhedron.empty);
+
             parse(p, varargin{:});
 
             obj.A_ = p.Results.A;
@@ -67,6 +78,12 @@ classdef LtvSystem < srt.systems.StochasticSystem
             obj.w_ = p.Results.w;
 
             obj.X_ = srt.spaces.Rn(obj.n_);
+
+            if isempty(p.Results.InputSpace)
+                obj.U_ = srt.spaces.Rn(obj.p_);
+            else
+                obj.U_ = p.Results.InputSpace;
+            end
 
             obj.n_ = size(obj.A(1), 2);
 
@@ -90,6 +107,10 @@ classdef LtvSystem < srt.systems.StochasticSystem
 
         function val = get.StateSpace(obj)
             val = obj.X_;
+        end
+
+        function val = get.InputSpace(obj)
+            val = obj.U_;
         end
 
         function val = get.Disturbance(obj)
@@ -216,7 +237,7 @@ classdef LtvSystem < srt.systems.StochasticSystem
                             (sub_indx-1)*obj.p_ + 1: sub_indx*obj.p_) =...
                                 obj.stateMatrixProduct(sub_indx, ith) * ...
                                 input_matrix_temp;
-                    end            
+                    end
                     H((ith-1)*obj.n_ +1 : ith*obj.n_,:) = row_for_H;
                 end
             else
@@ -235,7 +256,7 @@ classdef LtvSystem < srt.systems.StochasticSystem
                         row(:, (sub_indx-1)*obj.q_ + 1: sub_indx*obj.q_) = ...
                             obj.stateMatrixProduct(sub_indx, t_indx) * ...
                             dist_matrix_temp;
-                    end            
+                    end
                     G((t_indx-1)*obj.n_ +1 : t_indx*obj.n_,:) = row;
                 end
             else
@@ -264,18 +285,18 @@ classdef LtvSystem < srt.systems.StochasticSystem
     methods (Access = private)
         function P = stateMatrixProduct(obj, t, tau)
         % Compute product of state matrices between times [t, tau]:
-        % 
+        %
         %   P = A(t) * A(t+1) * A(t+2) * ... * A(tau)
-        % 
+        %
         % If t >= tau: P is an identity matrix
-        % 
+        %
 
             P = eye(obj.n_);
 
             if t<tau
                 for lv = t:tau-1
                     P = P * obj.A(lv);
-                end    
+                end
             end
         end
     end

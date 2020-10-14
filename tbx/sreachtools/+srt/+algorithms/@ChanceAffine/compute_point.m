@@ -1,8 +1,8 @@
-function results = compute_point(obj, prb, sys, x0, varargin)
+function results = compute_point(obj, problem, sys, x0, varargin)
 % COMPUTE_POINT Computes a point solution for the ChanceAffine algorithm.
 %
-%   results = COMPUTE_POINT(obj, prb, sys, x0)
-%   results = COMPUTE_POINT(obj, prb, sys, x0, ...)
+%   results = COMPUTE_POINT(obj, problem, sys, x0)
+%   results = COMPUTE_POINT(obj, problem, sys, x0, ...)
 %
 % Inputs:
 % -------
@@ -28,10 +28,10 @@ function results = compute_point(obj, prb, sys, x0, varargin)
 %                   U = [u_0; u_1; ...; u_{N-1}] and concatenated disturbance
 %                   vector W=[w_0; w_1; ...; w_{N-1}].
 %                   - results.opt_input_gain: Affine controller gain matrix of dimension
-%                       (sys.input_dim*N) x (sys.dist_dim*N)
+%                       (sys.InputDimension*N) x (sys.DisturbanceDimension*N)
 %                   - results.opt_input_vec: Open-loop controller: column vector
 %                     dimension
-%                       (sys.input_dim*N) x 1
+%                       (sys.InputDimension*N) x 1
 %   results.risk_alloc_state
 %               - Risk allocation for the state constraints
 %   results.risk_alloc_input
@@ -53,43 +53,54 @@ function results = compute_point(obj, prb, sys, x0, varargin)
 %   License for the use of this algorithm is given in
 %   https://sreachtools.github.io/license/
 
+% p = inputParser;
+% addRequired(p, 'problem', @obj.validateproblem);
+% addRequired(p, 'sys', @obj.validatesystem);
+% addRequired(p, 'x0');
+% parse(p, problem, sys, x0);
+
 p = inputParser;
-addRequired(p, 'prb', @obj.validateproblem);
+addRequired(p, 'problem', @obj.validateproblem);
 addRequired(p, 'sys', @obj.validatesystem);
 addRequired(p, 'x0');
-parse(p, prb, sys, x0);
+parse(p, problem, sys, x0, varargin{:});
 
 results = struct;
 
-import srt.* 
+import srt.*
 
 % results.lb_stoch_reach, results.opt_input_vec, results.opt_input_gain, results.risk_alloc_state, ...
     % results.risk_alloc_input
 
 % Target tubes has polyhedra T_0, T_1, ..., T_{N}
-N = prb.TimeHorizon - 1;
+N = problem.TimeHorizon - 1;
 
 % Get half space representation of the target tube and time horizon
 % skipping the first time step
-[concat_safety_tube_A, concat_safety_tube_b] = prb.TargetTube.concat(...
-    [2 N+1]);
+[concat_safety_tube_A, concat_safety_tube_b] = ...
+    problem.TargetTube.concatenate([2 N+1]);
 
 %% Halfspace-representation of U^N, H, G,mean_X_sans_input, cov_X_sans_input
 % GUARANTEES: Non-empty input sets (polyhedron)
 [concat_input_space_A, concat_input_space_b] = getConcatInputSpace(sys, ...
     N);
+
 % GUARANTEES: Compute the input concat and disturb concat transformations
 [~, H, G] = getConcatMats(sys, N);
+
 % GUARANTEES: well-defined initial_state and N
-sysnoi = LtvSystem('StateMatrix',sys.state_mat,'DisturbanceMatrix', ...
-    sys.dist_mat,'Disturbance',sys.dist);
-X_sans_input_rv_with_init_state = SReachFwd('concat-stoch', sysnoi, ...
-    initial_state, N);
-mean_X_zi_with_init_state = X_sans_input_rv_with_init_state.mean();
-mean_X_zi = mean_X_zi_with_init_state(sysnoi.state_dim + 1:end);
+sysnoi = srt.systems.LtvSystem( ...
+    'A', @(t) sys.A(t), ...
+    'F', sys.F, ...
+    'w', sys.Disturbance);
+
+X_sans_input_rv_with_init_state = srt.SReachFwd('concat-stoch', sysnoi, ...
+    x0, N);
+mean_X_zi_with_init_state = X_sans_input_rv_with_init_state.Mean();
+mean_X_zi = mean_X_zi_with_init_state(sysnoi.StateDimension + 1:end);
 
 %% Concatenation of disturbance vector
-W = sys.dist.concat(N);
+W = sys.Disturbance.concat(N);
 
 %% Compute M --- the number of polytopic halfspaces to worry about
 n_lin_state = size(concat_safety_tube_A,1);
@@ -98,17 +109,17 @@ n_lin_input = size(concat_input_space_A,1);
 % Compute a sparse square root of a matrix: chol produces a sqrt such that
 % sqrt' * sqrt = M. Hence, whenever, we left multiply (inside a norm), we
 % must transpose.
-[sqrt_cov_concat_disturb, p] = chol(W.cov());
+[sqrt_cov_concat_disturb, p] = chol(W.Sigma());
 if p > 0
     % Non-positive definite matrix can not use Cholesky's decomposition
     % Use sqrt to obtain a symmetric non-sparse square-root matrix
-    sqrt_cov_concat_disturb = sqrt(W.cov());
+    sqrt_cov_concat_disturb = sqrt(W.Sigma());
 end
 
 
 %% Piecewise-affine approximation of norminvcdf
 [invcdf_approx_m, invcdf_approx_c, lb_risk] =...
-    computeNormCdfInvOverApprox(0.5, options.pwa_accuracy, ...
+    computeNormCdfInvOverApprox(0.5, obj.pwa_accuracy, ...
         max(n_lin_state,n_lin_input));
 
 %% Difference of convex-based evaluation
@@ -123,7 +134,7 @@ norm_state_replace_slack_iter = norms(concat_safety_tube_A * G * ...
 norm_input_replace_slack_iter = zeros(n_lin_input,1);
 norminvdeltai_iter = norminv(lb_risk * ones(n_lin_state,1));
 norminvgammai_iter = norminv(lb_risk * ones(n_lin_input,1));
-tau_iter = options.tau_initial;
+tau_iter = obj.tau_initial;
 
 continue_condition = 1;
 % DC subproblems
@@ -135,9 +146,9 @@ while continue_condition == 1
 
     % The iteration values are updated at the end of the problem
     cvx_begin quiet
-        variable M(sys.input_dim*N,sys.dist_dim*N);
-        variable d(sys.input_dim * N, 1);
-        variable mean_X(sys.state_dim * N, 1);
+        variable M(sys.InputDimension*N,sys.DisturbanceDimension*N);
+        variable d(sys.InputDimension * N, 1);
+        variable mean_X(sys.StateDimension * N, 1);
         % State chance constraint
         variable deltai(n_lin_state, 1) nonnegative;
         variable norminvdeltai(n_lin_state, 1) nonnegative;
@@ -156,9 +167,9 @@ while continue_condition == 1
         subject to
             % Causality constraints on M_matrix
             for time_indx = 1:N
-                M((time_indx-1)*sys.input_dim + 1:...
-                    time_indx*sys.input_dim, ...
-                    (time_indx-1)*sys.dist_dim+1:end) == 0;
+                M((time_indx-1)*sys.InputDimension + 1:...
+                    time_indx*sys.InputDimension, ...
+                    (time_indx-1)*sys.DisturbanceDimension+1:end) == 0;
             end
             % slack variables
             slack_reverse_state >= 0;
@@ -168,13 +179,13 @@ while continue_condition == 1
             norminvdeltai >= 0;
             norminvgammai >= 0;
             % Mean trajectory constraint (mean_X_zi already has Zx + GW)
-            mean_X == mean_X_zi + H * (M * W.mean() + d);
+            mean_X == mean_X_zi + H * (M * W.Mean() + d);
             % Risk allocation bounds --- state
             lb_risk <= deltai <= 0.5;
-            sum(deltai) <= 1 - options.max_input_viol_prob;
+            sum(deltai) <= 1 - obj.max_input_viol_prob;
             % Risk allocation bounds --- input
-            lb_risk <= gammai  <= options.max_input_viol_prob;
-            sum(gammai) <= options.max_input_viol_prob;
+            lb_risk <= gammai  <= obj.max_input_viol_prob;
+            sum(gammai) <= obj.max_input_viol_prob;
             % Norms in their epigraph form (search 'chol' for why transpose)
             norms(concat_safety_tube_A* (H * M + G) * ...
                 sqrt_cov_concat_disturb',2,2)<= norm_state_replace_slack;
@@ -221,7 +232,7 @@ while continue_condition == 1
     sum_slack_rev_state = sum(sum(slack_reverse_state));
     sum_slack_rev_input = sum(sum(slack_reverse_input));
 
-    if strcmpi(cvx_status, 'Solved') ||...
+    if strcmpi(cvx_status, 'Solved') || ...
             strcmpi(cvx_status, 'Inaccurate/Solved')
         % Successfully solved the subproblem
         dc_slack_with_tau_curr = tau_iter * (sum_slack_rev_state + ...
@@ -235,7 +246,7 @@ while continue_condition == 1
                  'Current probabilty: %1.3f | tau_iter: %d\n', ...
                  'DC slack-total sum --- state: %1.2e | ', ...
                  'input: %1.2e\n\n'], ...
-                 solver_status,  options.iter_max, ...
+                 solver_status,  obj.iter_max, ...
                  1-(obj_curr - dc_slack_with_tau_curr), tau_iter, ...
                  sum_slack_rev_state,sum_slack_rev_input);
 
@@ -243,10 +254,10 @@ while continue_condition == 1
             % The continue criteria is < iter_max AND
             % NOT OF DC stopping criteria in Lipp and Boyd is met) AND
             % NOT OF slack is an acceptable replacement
-            continue_condition = ((iter_count < options.iter_max) &&...
-                ~((abs(obj_prev - obj_curr) <= options.dc_conv_tol) &&...
+            continue_condition = ((iter_count < obj.iter_max) &&...
+                ~((abs(obj_prev - obj_curr) <= obj.dc_conv_tol) &&...
                     max(sum_slack_rev_input, sum_slack_rev_input) <=...
-                    options.slack_tol));
+                    obj.slack_tol));
 
             % Iteration status analysis
             obj.print_verbose(2, ...
@@ -256,11 +267,11 @@ while continue_condition == 1
                     'input: %1.2e | Acceptable: <%1.3e\n', ...
                  'DC convergence error: %1.2e | Acceptable:', ...
                  ' <%1.3e\n\n'], ...
-                 iter_count, solver_status, options.iter_max, ...
+                 iter_count, solver_status, obj.iter_max, ...
                  1-(obj_curr - dc_slack_with_tau_curr), ...
                  tau_iter, sum_slack_rev_state, ...
-                 sum_slack_rev_input, options.slack_tol, ...
-                 abs(obj_prev - obj_curr), options.dc_conv_tol);
+                 sum_slack_rev_input, obj.slack_tol, ...
+                 abs(obj_prev - obj_curr), obj.dc_conv_tol);
 
         end
         % Next iteration initialization
@@ -268,7 +279,7 @@ while continue_condition == 1
         norminvdeltai_iter = norminvdeltai;
         norm_input_replace_slack_iter = norm_input_replace_slack;
         norminvgammai_iter = norminvgammai;
-        tau_iter = min(tau_iter * options.scaling_tau, options.tau_max);
+        tau_iter = min(tau_iter * obj.scaling_tau, obj.tau_max);
         % Increment counter
         iter_count = iter_count + 1;
     else
@@ -286,15 +297,15 @@ while continue_condition == 1
              'state: %1.3e | input: %1.3e | Acceptable: ', ...
              '<%1.1e\n'], ...
              sum_slack_rev_state, sum_slack_rev_input, ...
-             options.dc_conv_tol);
+             obj.dc_conv_tol);
 
-        end
     end
+
 end
 
-if max(sum_slack_rev_state, sum_slack_rev_input) <= options.dc_conv_tol
+if max(sum_slack_rev_state, sum_slack_rev_input) <= obj.dc_conv_tol
     % Both the DC slack variables are below tolerance
-    results.lb_stoch_reach = 1 - sum(deltai)/(1-options.max_input_viol_prob);
+    results.lb_stoch_reach = 1 - sum(deltai)/(1-obj.max_input_viol_prob);
     results.opt_input_vec = d;
     results.opt_input_gain = M;
     results.risk_alloc_state = deltai;
@@ -302,7 +313,7 @@ if max(sum_slack_rev_state, sum_slack_rev_input) <= options.dc_conv_tol
 else
     % Tell SReachPoint that no solution was found
     results.lb_stoch_reach = -1;
-    results.opt_input_vec = nan(sys.input_dim * N,1);
+    results.opt_input_vec = nan(sys.InputDimension * N,1);
     results.opt_input_gain = [];
     results.risk_alloc_state = nan(n_lin_state,1);
     results.risk_alloc_input = nan(n_lin_input,1);

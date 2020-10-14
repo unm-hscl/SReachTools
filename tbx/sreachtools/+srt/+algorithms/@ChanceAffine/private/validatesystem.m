@@ -1,7 +1,17 @@
-function validatesystem(obj, sys)
+function validatesystem(obj, system)
 % VALIDATESYSTEM Validate system.
 
-validateattributes(sys, {'LTISystem', 'LTVSystem'}, {'nonempty'});
+arguments
+    obj
+    system (1, 1) srt.systems.StochasticSystem {mustBeNonempty}
+end
+
+supportedSystems = {'srt.systems.LtiSystem', ...
+                    'srt.systems.LtvSystem'};
+
+if ~ismember(class(system), supportedSystems)
+  error('System is not supported.');
+end
 
 % Must not be random vector.
 % Must have Gaussian disturbance.

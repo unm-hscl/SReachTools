@@ -14,6 +14,7 @@ classdef (Sealed) KernelEmbeddings < srt.algorithms.Algorithm
 
         % VALUE_FUNCTIONS_ Computed value functions.
         value_functions_ double {mustBeNumeric}
+
     end
 
     properties (Dependent)

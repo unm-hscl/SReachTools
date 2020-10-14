@@ -33,7 +33,7 @@ classdef LagrangianUnder < srt.algorithms.Algorithm
                 @(x) isa(x, 'Polyhedron') || isa(x, 'srt.Ellipsoid'));
             addParameter(p, 'verbose', 0);
             parse(p, varargin{:});
-            
+
 
             obj.vfalg_ = p.Results.VertexFacetAlgorithm;
             obj.method_ = p.Results.Method;
@@ -61,7 +61,7 @@ classdef LagrangianUnder < srt.algorithms.Algorithm
             % 2) Implement recursion
             %   2a) If FullEnumeration, implement recursion exactly as specified
             %   2b) If VertexUndersampling, perform the undersampling
-            % 
+            %
 
             p = inputParser();
             addRequired(p, 'prob', @(x) obj.validateproblem(x));
@@ -76,7 +76,7 @@ classdef LagrangianUnder < srt.algorithms.Algorithm
 
             if strcmp(obj.Method, 'FullEnumeration') && ...
                 sys.StateDimension > 3
-                
+
                 warning(['You have specified full vertex facet ', ...
                     'enumeration for a system with state dimension > 3. ', ...
                     'Solutions may require exceedingly high computing ', ...
@@ -140,13 +140,13 @@ classdef LagrangianUnder < srt.algorithms.Algorithm
         end
 
         function Rm = vertex_undersample_recursion(obj, k, R, K, E, U, sys)
-            
+
         end
     end
 
     methods (Hidden, Access = private)
         function E = compute_bounded_set(obj, N, lev, dv)
-            % Prbability level required of the bounded set
+            % Probability level required of the bounded set
             gam = lev^(1/N);
 
             if isEmptySet(obj.TemplatePolytope) && ...
@@ -167,7 +167,7 @@ classdef LagrangianUnder < srt.algorithms.Algorithm
         function validatedependencies(obj)
             % Needs MPT
             pth = which('Polyhedron');
-    
+
             if isempty(pth)
                 error(sprintf(['The Model Parametric toolbox is required ', ...
                     'to use Lagrangian algorithms. You can download it ', ...

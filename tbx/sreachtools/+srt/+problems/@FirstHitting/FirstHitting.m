@@ -8,27 +8,27 @@ classdef FirstHitting < srt.problems.Problem
 %   See also: MaximalHitting, TerminalHitting, Viability
 
     methods
-        function obj = FirstHitting(varargin)
+
+        function obj = FirstHitting(options)
             % FIRSTHITTING Construct an instance of the problem.
-            if nargin
 
-                p = inputParser;
-                addParameter(p, 'ConstraintTube', srt.Tube.empty);
-                addParameter(p, 'TargetTube', srt.Tube.empty);
-                parse(p, varargin{:});
-
-                % Ensure T in K?
-
-                obj.constraint_tube_ = p.Results.ConstraintTube;
-                obj.target_tube_ = p.Results.TargetTube;
-
-                assert(length(obj.constraint_tube_) == ...
-                       length(obj.target_tube_));
-
-            else
-                error('Invalid problem definition.');
+            arguments
+                options.ConstraintTube (1, 1) srt.Tube
+                options.TargetTube (1, 1) srt.Tube
             end
+
+            obj = obj@srt.problems.Problem();
+
+            % Ensure T in K?
+
+            assert(length(options.ConstraintTube) == ...
+                   length(options.TargetTube));
+
+            obj.TargetTube = options.TargetTube;
+            obj.ConstraintTube = options.ConstraintTube;
+
         end
+
     end
 
 end

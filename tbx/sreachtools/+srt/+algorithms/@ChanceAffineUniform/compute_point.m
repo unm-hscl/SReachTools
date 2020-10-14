@@ -1,18 +1,18 @@
-function results = compute_point(obj, prb, sys, x0, varargin)
+function results = compute_point(obj, problem, system, x0, varargin)
 % COMPUTE_POINT Computes a point solution for the ChanceAffineUniform algorithm.
 %
-%   results = COMPUTE_POINT(obj, prb, sys, x0)
-%   results = COMPUTE_POINT(obj, prb, sys, x0, ...)
+%   results = COMPUTE_POINT(obj, problem, system, x0)
+%   results = COMPUTE_POINT(obj, problem, system, x0, ...)
 %
 %   [lb_stoch_reach, opt_input_vec, opt_input_gain, risk_alloc_state, ...
-%       risk_alloc_input] = SReachPointCcAu(sys, initial_state, safety_tube, ...
+%       risk_alloc_input] = SReachPointCcAu(system, initial_state, safety_tube, ...
 %       options)
 %
 % Inputs:
 % -------
-%   sys          - System description (LtvSystem/LtiSystem object)
+%   system          - System description (LtvSystem/LtiSystem object)
 %   initial_state- Initial state for which the maximal reach probability must be
-%                  evaluated (A numeric vector of dimension sys.state_dim)
+%                  evaluated (A numeric vector of dimension system.state_dim)
 %   safety_tube  - Collection of (potentially time-varying) safe sets that
 %                  define the safe states (Tube object)
 %   options      - Collection of user-specified options for 'chance-affine-uni'
@@ -30,10 +30,10 @@ function results = compute_point(obj, prb, sys, x0, varargin)
 %                   U = [u_0; u_1; ...; u_{N-1}] and concatenated disturbance
 %                   vector W=[w_0; w_1; ...; w_{N-1}].
 %                   - opt_input_gain: Affine controller gain matrix of dimension
-%                       (sys.input_dim*N) x (sys.dist_dim*N)
+%                       (system.input_dim*N) x (system.dist_dim*N)
 %                   - opt_input_vec: Open-loop controller: column vector
 %                     dimension
-%                       (sys.input_dim*N) x 1
+%                       (system.input_dim*N) x 1
 %   risk_alloc_state
 %               - Risk allocation for the state constraints
 %   risk_alloc_input
@@ -52,16 +52,21 @@ function results = compute_point(obj, prb, sys, x0, varargin)
 %   License for the use of this algorithm is given in
 %   https://sreachtools.github.io/license/
 
-p = inputParser;
-addRequired(p, 'prb', @obj.validateproblem);
-addRequired(p, 'sys', @obj.validatesystem);
-addRequired(p, 'x0');
-parse(p, prb, sys, x0);
+arguments
+    obj (1, 1)
+    problem (1, 1) {validateproblem}
+    system (1, 1) {validatesystem}
+    x0 (:, 1) double
+end
+
+results = struct;
+
+import srt.*
 
 % Target tubes has polyhedra T_0, T_1, ..., T_{time_horizon}
 time_horizon = length(safety_tube) - 1;
 
-otherInputHandling(sys, options, time_horizon);
+otherInputHandling(system, options, time_horizon);
 
 % Get half space representation of the target tube and time horizon
 % skipping the first time step
@@ -70,19 +75,19 @@ otherInputHandling(sys, options, time_horizon);
 
 %% Halfspace-representation of U^N, H, G,mean_X_sans_input, cov_X_sans_input
 % GUARANTEES: Non-empty input sets (polyhedron)
-[concat_input_space_A, concat_input_space_b] = getConcatInputSpace(sys, ...
+[concat_input_space_A, concat_input_space_b] = getConcatInputSpace(system, ...
     time_horizon);
 % GUARANTEES: Compute the input concat and disturb concat transformations
-[~, H, G] = getConcatMats(sys, time_horizon);
+[~, H, G] = getConcatMats(system, time_horizon);
 % GUARANTEES: well-defined initial_state and time_horizon
-sysnoi = LtvSystem('StateMatrix',sys.state_mat,'DisturbanceMatrix', ...
-    sys.dist_mat,'Disturbance',sys.dist);
+sysnoi = LtvSystem('StateMatrix',system.state_mat,'DisturbanceMatrix', ...
+    system.dist_mat,'Disturbance',system.dist);
 X_sans_input_rv = SReachFwd('concat-stoch', sysnoi, initial_state, ...
     time_horizon);
 mean_X_zi = X_sans_input_rv.mean();
 mean_X_zi = mean_X_zi(sysnoi.state_dim + 1:end);
 
-mean_W = kron(ones(time_horizon,1), sys.dist.mean());
+mean_W = kron(ones(time_horizon,1), system.dist.mean());
 
 
 %% Compute M --- the number of polytopic halfspaces to worry about
@@ -90,7 +95,7 @@ n_lin_state = size(concat_safety_tube_A,1);
 n_lin_input = size(concat_input_space_A,1);
 
 %% Covariance of W vector
-cov_concat_disturb = kron(eye(time_horizon),sys.dist.cov());
+cov_concat_disturb = kron(eye(time_horizon),system.dist.cov());
 % Compute a sparse square root of a matrix: chol produces a sqrt such that
 % sqrt' * sqrt = M. Hence, whenever, we left multiply (inside a norm), we
 % must transpose.
@@ -102,7 +107,7 @@ if p > 0
 end
 
 lb_stoch_reach = -1;
-opt_input_vec = nan(sys.input_dim * time_horizon,1);
+opt_input_vec = nan(system.input_dim * time_horizon,1);
 opt_input_gain = [];
 risk_alloc_state = nan(n_lin_state,1);
 risk_alloc_input = nan(n_lin_input,1);
@@ -135,15 +140,15 @@ while state_prob_ub - state_prob_lb > options.state_bisect_tol
 
         % The iteration values are updated at the end of the problem
         cvx_begin quiet
-            variable M(sys.input_dim*time_horizon,sys.dist_dim*time_horizon)
-            variable d(sys.input_dim * time_horizon, 1);
+            variable M(system.input_dim*time_horizon,system.dist_dim*time_horizon)
+            variable d(system.input_dim * time_horizon, 1);
             maximize 0;
             subject to
                 % Causality constraints on M_matrix
                 for time_indx = 1:time_horizon
-                    M((time_indx-1)*sys.input_dim + 1:...
-                        time_indx*sys.input_dim, ...
-                        (time_indx-1)*sys.dist_dim+1:end) == 0;
+                    M((time_indx-1)*system.input_dim + 1:...
+                        time_indx*system.input_dim, ...
+                        (time_indx-1)*system.dist_dim+1:end) == 0;
                 end
                 % Individual chance constraint --- input
                 concat_input_space_A *  (M * mean_W + d) + ...

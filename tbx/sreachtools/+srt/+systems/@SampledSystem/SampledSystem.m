@@ -2,6 +2,7 @@ classdef SampledSystem < srt.systems.StochasticSystem
 % SAMPLEDSYSTEM Samples from a stochastic system.
 
     properties (Access = private)
+
         % N State space dimensionality.
         n_(1, 1) double {mustBeNumeric}
         % M Input space dimensionality.
@@ -20,6 +21,7 @@ classdef SampledSystem < srt.systems.StochasticSystem
         w_samples_ double {mustBeNumeric}
         % Y_SAMPLES_ Vector of output samples.
         y_samples_ double {mustBeNumeric}
+
     end
 
     properties (Dependent)
@@ -79,6 +81,14 @@ classdef SampledSystem < srt.systems.StochasticSystem
             addParameter(p, 'Y', []);
             parse(p, varargin{:});
 
+            M = size(p.Results.X, 2);
+
+            % validateattributes(p.Results.U, {'numeric'}, {'ncols', M});
+            % validateattributes(p.Results.W, {'numeric'}, {'ncols', M});
+            % validateattributes(p.Results.Y, {'numeric'}, {'ncols', M});
+
+            obj.num_samples_ = M;
+
             obj.x_samples_ = p.Results.X;
             obj.u_samples_ = p.Results.U;
             obj.w_samples_ = p.Results.W;
@@ -87,8 +97,6 @@ classdef SampledSystem < srt.systems.StochasticSystem
             obj.n_ = size(obj.x_samples_, 1);
             obj.m_ = size(obj.u_samples_, 1);
             obj.p_ = size(obj.w_samples_, 1);
-
-            obj.num_samples_ = size(obj.x_samples_, 2);
 
             assert(obj.n_ == size(obj.y_samples_, 1));
 

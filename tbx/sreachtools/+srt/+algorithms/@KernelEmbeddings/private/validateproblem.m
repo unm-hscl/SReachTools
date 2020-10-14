@@ -1,7 +1,10 @@
 function validateproblem(obj, problem)
 % VALIDATEPROBLEM Checks if the problem is valid for the algorithm.
 
-validateattributes(problem, {'srt.problems.Problem'}, {'nonempty'});
+arguments
+    obj
+    problem (1, 1) srt.problems.Problem {mustBeNonempty}
+end
 
 supportedProblems = {'srt.problems.FirstHitting', ...
                      'srt.problems.TerminalHitting', ...

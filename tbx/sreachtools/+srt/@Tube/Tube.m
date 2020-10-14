@@ -3,7 +3,7 @@ classdef Tube
 
     properties (Access = private)
         % Sets.
-        tube_(:, 1) {mustBeValidSet} = Polyhedron.empty;
+        tube_ (:, 1) {mustBeValidSet} = Polyhedron.empty;
     end
 
     properties (Dependent, Hidden)
@@ -49,7 +49,7 @@ classdef Tube
 
                 end
             else
-                error('Tube is improperly declared. For help, type: help Tube');
+                % error('Tube is improperly declared. For help, type: help Tube');
             end
 
         end
@@ -124,6 +124,7 @@ if ~isempty(sets)
     % for s = sets.'
     %     assert(~s.isEmptySet());
     % end
+    
     sets.forEach(@isEmptySet);
 end
 

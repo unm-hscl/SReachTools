@@ -1,1 +1,1 @@
-function results = compute_point(obj, prb, sys, x0, varargin)
+function results = compute_point(obj, prob, sys, x0, varargin)

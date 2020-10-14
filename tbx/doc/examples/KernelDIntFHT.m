@@ -6,11 +6,11 @@
 % Specify the time horizon, the safe set $\mathcal{K}$, and the target set
 % $\mathcal{T}$.
 
-N = 3;
+N = 5;
 K = srt.Tube(N, Polyhedron('lb', [-1; -1], 'ub', [1; 1]));
 T = srt.Tube(N, Polyhedron('lb', [-0.5; -0.5], 'ub', [0.5; 0.5]));
 
-prb = srt.problems.FirstHitting('ConstraintTube', K, 'TargetTube', T);
+problem = srt.problems.FirstHitting('ConstraintTube', K, 'TargetTube', T);
 
 %% System Definition
 % Generate input/output samples for a double integrator system.
@@ -42,10 +42,10 @@ alg = srt.algorithms.KernelEmbeddings('sigma', 0.1, 'lambda', 1);
 % Call the algorithm.
 
 s = linspace(-1, 1, 100);
-X = sampleunif(s, s);
-U = zeros(1, size(X, 2));
+Xt = sampleunif(s, s);
+Ut = zeros(1, size(Xt, 2));
 
-results = SReachPoint(prb, alg, sys, X, U);
+results = SReachPoint(problem, alg, sys, Xt, Ut);
 
 %%
 % View the results.

@@ -1,4 +1,4 @@
-function results = compute_point(obj, prb, sys, x0, varargin)
+function results = compute_point(obj, problem, sys, x0, varargin)
 % Solve the problem of stochastic reachability of a target tube (a lower bound
 % on the maximal reach probability and an open-loop controller synthesis) using
 % convex chance-constrained optimization
@@ -83,9 +83,9 @@ function results = compute_point(obj, prb, sys, x0, varargin)
 %
 
 p = inputParser;
-addRequired(p, prb, @obj.validateproblem);
+addRequired(p, problem, @obj.validateproblem);
 addRequired(p, sys, @obj.validatesystem);
-parse(p, prb, sys);
+parse(p, problem, sys);
 
 % Target tubes has polyhedra T_0, T_1, ..., T_{time_horizon}
 time_horizon = length(safety_tube)-1;

@@ -100,9 +100,9 @@ function results = compute_set(obj, problem, sys, varargin)
 %
 
 p = inputParser;
-addRequired(p, prb, @obj.validateproblem);
+addRequired(p, problem, @obj.validateproblem);
 addRequired(p, sys, @obj.validatesystem);
-parse(p, prb, sys);
+parse(p, problem, sys);
 
 
 % Construct the constrained initial safe set

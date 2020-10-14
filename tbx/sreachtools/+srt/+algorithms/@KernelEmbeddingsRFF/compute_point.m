@@ -1,15 +1,15 @@
-function results = compute_point(obj, prb, sys, x0, u0, varargin)
+function results = compute_point(obj, prob, sys, x0, u0, varargin)
 
 p = inputParser;
-addRequired(p, 'prb', @obj.validateproblem);
+addRequired(p, 'prob', @obj.validateproblem);
 addRequired(p, 'sys', @obj.validatesystem);
 addRequired(p, 'x0');
-parse(p, prb, sys, x0, varargin{:});
+parse(p, prob, sys, x0, varargin{:});
 
 import srt.*
 
 % Constants
-N = prb.TimeHorizon;
+N = prob.TimeHorizon;
 
 mt = size(x0, 2);
 
@@ -43,33 +43,33 @@ gamma = gamma./sum(gamma, 1);
 % Compute value functions.
 Vk = zeros(N, M);
 
-switch class(prb)
+switch class(prob)
     case 'srt.problems.FirstHitting'
 
-        Vk(N, :) = prb.TargetTube.contains(N, sys.Y);
+        Vk(N, :) = prob.TargetTube.contains(N, sys.Y);
 
         for k = N-1:-1:2
-            Vk(k, :) = prb.TargetTube.contains(k, sys.Y) + ...
-                       (prb.ConstraintTube.contains(k, sys.Y) & ...
-                        ~prb.TargetTube.contains(k, sys.Y)).* ...
+            Vk(k, :) = prob.TargetTube.contains(k, sys.Y) + ...
+                       (prob.ConstraintTube.contains(k, sys.Y) & ...
+                        ~prob.TargetTube.contains(k, sys.Y)).* ...
                             (Vk(k+1, :)*gamma);
         end
 
     case 'srt.problems.TerminalHitting'
 
-        Vk(N, :) = prb.TargetTube.contains(N, sys.Y);
+        Vk(N, :) = prob.TargetTube.contains(N, sys.Y);
 
         for k = N-1:-1:2
-            Vk(k, :) = prb.ConstraintTube.contains(k, sys.Y).* ...
+            Vk(k, :) = prob.ConstraintTube.contains(k, sys.Y).* ...
                 (Vk(k+1, :)*gamma);
         end
 
     case 'srt.problems.Viability'
 
-        Vk(N, :) = prb.ConstraintTube.contains(N, sys.Y);
+        Vk(N, :) = prob.ConstraintTube.contains(N, sys.Y);
 
         for k = N-1:-1:2
-            Vk(k, :) = prb.ConstraintTube.contains(k, sys.Y).* ...
+            Vk(k, :) = prob.ConstraintTube.contains(k, sys.Y).* ...
                 (Vk(k+1, :)*gamma);
         end
 
@@ -85,33 +85,33 @@ gamma = beta.'*Zx0;
 
 gamma = gamma./sum(gamma, 1);
 
-switch class(prb)
+switch class(prob)
     case 'srt.problems.FirstHitting'
 
-        Pr(N, :) = prb.TargetTube.contains(N, x0);
+        Pr(N, :) = prob.TargetTube.contains(N, x0);
 
         for k = N-1:-1:1
-            Pr(k, :) = prb.TargetTube.contains(k, x0) + ...
-                       (prb.ConstraintTube.contains(k, x0) & ...
-                        ~prb.TargetTube.contains(k, x0)).* ...
+            Pr(k, :) = prob.TargetTube.contains(k, x0) + ...
+                       (prob.ConstraintTube.contains(k, x0) & ...
+                        ~prob.TargetTube.contains(k, x0)).* ...
                             (Vk(k+1, :)*gamma);
         end
 
     case 'srt.problems.TerminalHitting'
 
-        Pr(N, :) = prb.TargetTube.contains(N, x0);
+        Pr(N, :) = prob.TargetTube.contains(N, x0);
 
         for k = N-1:-1:1
-            Pr(k, :) = prb.ConstraintTube.contains(k, x0).* ...
+            Pr(k, :) = prob.ConstraintTube.contains(k, x0).* ...
                 (Vk(k+1, :)*gamma);
         end
 
     case 'srt.problems.Viability'
 
-        Pr(N, :) = prb.ConstraintTube.contains(N, x0);
+        Pr(N, :) = prob.ConstraintTube.contains(N, x0);
 
         for k = N-1:-1:1
-            Pr(k, :) = prb.ConstraintTube.contains(k, x0).* ...
+            Pr(k, :) = prob.ConstraintTube.contains(k, x0).* ...
                 (Vk(k+1, :)*gamma);
         end
 
