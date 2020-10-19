@@ -1,9 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Profile KernelEmbeddings algorithms.
+% Profile KernelEmbeddingsRFF algorithms.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-classdef ProfileKernelEmbeddings < matlab.perftest.TestCase
-% KernelEmbeddings profiles
+classdef ProfileKernelEmbeddingsRFF < matlab.perftest.TestCase
+% KernelEmbeddingsRFF profiles
 
 properties
 
@@ -20,6 +20,13 @@ properties (MethodSetupParameter)
 
     % Number of samples used to build the approximation.
     M = num2cell(100:100:2500);
+
+end
+
+properties (TestParameter)
+
+    % Number of frequency samples used to build the RFF approximation.
+    D = num2cell(100:100:1000);
 
 end
 
@@ -83,14 +90,14 @@ end
 
 methods (Test)
 
-    function profileKernelEmbeddings(testCase)
+    function profileKernelEmbeddingsRFF(testCase, D)
         % Compute the safety probabilities.
         problem     = testCase.Problem; %#ok<*PROP>
         samples     = testCase.Samples;
 
         % Define the algorithm.
-        args = {'sigma', 0.1, 'lambda', 1};
-        algorithm = srt.algorithms.KernelEmbeddings(args{:});
+        args = {'sigma', 0.1, 'lambda', 1, 'D', D};
+        algorithm = srt.algorithms.KernelEmbeddingsRFF(args{:});
 
         % Set the initial condition.
         x0 = testCase.InitialCondition;
