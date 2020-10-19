@@ -22,7 +22,6 @@ end
 % 4. Check if the disturbance matrix is identity (Theory requirement,
 %    else this formulation is not practical as it is stronger than
 %    state feedback control law)
-% NOTE: chance-affine has an exact same structure
 
 % if ~isa(sys.dist,'RandomVector')
 %     throwAsCaller(SrtInvalidArgsError('Expected a stochastic system'));

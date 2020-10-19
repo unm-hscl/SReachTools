@@ -31,12 +31,41 @@ classdef ChanceAffineUniform < srt.algorithms.Algorithm
 %   License for the use of this algorithm is given in
 %   https://sreachtools.github.io/license/
 
+    properties (Access = private)
+
+        % Probabilistic relaxation of the hard input constraints
+        max_input_viol_prob (1, 1) double {mustBePositive, ...
+            mustBeLessThan(max_input_viol_prob, 1)} = 1E-2
+
+        % Bisection tolerance for the state chance constraints
+        state_bisect_tol (1, 1) double {mustBePositive, ...
+            mustBeLessThan(state_bisect_tol, 1)} = 1E-3
+
+        % Bisection tolerance for the input chance constraints
+        input_bisect_tol (1, 1) double {mustBePositive, ...
+            mustBeLessThan(input_bisect_tol, 1)} = 1E-3
+
+    end
+
     methods
         function obj = ChanceAffineUniform(varargin)
             % CHANCEAFFINEUNIFORM Construct an instance of the algorithm.
 
             % Call the parent constructor.
             obj = obj@srt.algorithms.Algorithm(varargin{:});
+
+            p = inputParser;
+            p.KeepUnmatched = true;
+
+            addParameter(p, 'max_input_viol_prob', 1E-2);
+            addParameter(p, 'state_bisect_tol', 1E-3);
+            addParameter(p, 'input_bisect_tol', 1E-3);
+
+            parse(p, varargin{:});
+
+            obj.max_input_viol_prob = p.Results.max_input_viol_prob;
+            obj.state_bisect_tol = p.Results.state_bisect_tol;
+            obj.input_bisect_tol = p.Results.input_bisect_tol;
 
         end
     end

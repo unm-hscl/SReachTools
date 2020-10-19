@@ -1,11 +1,11 @@
-function results = compute_point(obj, problem, sys, x0, varargin)
+function results = compute_point(obj, prob, sys, x0, varargin)
 % Solve the problem of stochastic reachability of a target tube (a lower bound
 % on the maximal reach probability and an open-loop controller synthesis) using
 % convex chance-constrained optimization
 % =============================================================================
 %
 % SReachPointCcO implements a chance-constrained convex underapproximation to
-% the stochastic reachability of a target tube problem. The original problem was
+% the stochastic reachability of a target tube prob. The original problem was
 % formulated (for the simpler problem of terminal hitting-time stochastic
 % reach-avoid problem) in
 %
@@ -83,33 +83,47 @@ function results = compute_point(obj, problem, sys, x0, varargin)
 %
 
 p = inputParser;
-addRequired(p, problem, @obj.validateproblem);
-addRequired(p, sys, @obj.validatesystem);
-parse(p, problem, sys);
+addRequired(p, 'prob', @obj.validateproblem);
+addRequired(p, 'sys', @obj.validatesystem);
+addRequired(p, 'x0');
+parse(p, prob, sys, x0, varargin{:});
 
-% Target tubes has polyhedra T_0, T_1, ..., T_{time_horizon}
-time_horizon = length(safety_tube)-1;
+results = struct;
+
+import srt.*
+
+% Target tubes has polyhedra T_0, T_1, ..., T_{N}
+N = prob.TimeHorizon - 1;
+
 
 % Get half space representation of the target tube and time horizon
 % skipping the first time step
-[concat_safety_tube_A, concat_safety_tube_b] = safety_tube.concat( ...
-    [2 time_horizon+1]);
+[concat_safety_tube_A, concat_safety_tube_b] = ...
+    prob.TargetTube.concatenate([2 N+1]);
 
-%% Halfspace-representation of U^N, H, mean_X_sans_input, cov_X_sans_input
+%% Halfspace-representation of U^N, H, G,mean_X_sans_input, cov_X_sans_input
 % GUARANTEES: Non-empty input sets (polyhedron)
 [concat_input_space_A, concat_input_space_b] = getConcatInputSpace(sys, ...
-    time_horizon);
-% Compute the input concatenated transformations
-[~, H, ~] = getConcatMats(sys, time_horizon);
-% Compute mean_X_sans_input, cov_X_sans_input
-sysnoi = LtvSystem('StateMatrix',sys.state_mat,'DisturbanceMatrix', ...
-    sys.dist_mat,'Disturbance',sys.dist);
-X_sans_input_rv = SReachFwd('concat-stoch', sysnoi, initial_state, time_horizon);
-mean_X_sans_input = X_sans_input_rv.mean();
-mean_X_sans_input = mean_X_sans_input(sysnoi.state_dim+1:end);
-cov_X_sans_input = X_sans_input_rv.cov();
-cov_X_sans_input = cov_X_sans_input(sysnoi.state_dim+1:end, ...
-    sysnoi.state_dim+1:end);
+    N);
+
+% GUARANTEES: Compute the input concat and disturb concat transformations
+[~, H, G] = getConcatMats(sys, N);
+
+% GUARANTEES: well-defined initial_state and N
+sysnoi = srt.systems.LtvSystem( ...
+    'A', @(t) sys.A(t), ...
+    'F', sys.F, ...
+    'w', sys.Disturbance);
+
+X_sans_input_rv = srt.SReachFwd('concat-stoch', sysnoi, x0, N);
+
+mean_X_sans_input = X_sans_input_rv.Mean();
+mean_X_sans_input = mean_X_sans_input(sysnoi.StateDimension+1:end);
+
+cov_X_sans_input = X_sans_input_rv.Sigma();
+cov_X_sans_input = cov_X_sans_input( ...
+    sysnoi.StateDimension+1:end, ...
+    sysnoi.StateDimension+1:end);
 
 
 %% Compute M --- the number of polytopic halfspaces to worry about
@@ -124,17 +138,17 @@ if p > 0
     sqrt_cov_X_sans_input = sqrt(cov_X_sans_input);
 end
 % Hence, we need the transpose on sqrt_cov_X
-scaled_sigma_vec = norms(concat_safety_tube_A * sqrt_cov_X_sans_input',2,2);
+scaled_sigma_vec = norms(concat_safety_tube_A*sqrt_cov_X_sans_input', 2, 2);
 
 
 %% Obtain the piecewise linear overapproximation of norminvcdf in [0,0.5]
 [invcdf_approx_m, invcdf_approx_c, lb_deltai] =...
-    computeNormCdfInvOverApprox(0.5, options.pwa_accuracy, n_lin_state);
+    computeNormCdfInvOverApprox(0.5, obj.pwa_accuracy, n_lin_state);
 
 %% Solve the feasibility problem
 cvx_begin quiet
-    variable U_vector(sys.input_dim * time_horizon,1);
-    variable mean_X(sys.state_dim * time_horizon, 1);
+    variable U_vector(sys.InputDimension * N, 1);
+    variable mean_X(sys.StateDimension * N, 1);
     variable deltai(n_lin_state, 1);
     variable norminvover(n_lin_state, 1);
     minimize sum(deltai)
@@ -150,29 +164,24 @@ cvx_begin quiet
         deltai >= lb_deltai;
         deltai <= 0.5;
 cvx_end
+
 if strcmpi(cvx_status, 'Solved')
-    lb_stoch_reach = 1-sum(deltai);
-    opt_input_vec = U_vector;
-    risk_alloc_state = deltai;
+    results.lb_stoch_reach = 1-sum(deltai);
+    results.opt_input_vec = U_vector;
+    results.risk_alloc_state = deltai;
 else
-    lb_stoch_reach = -1;
-    opt_input_vec = nan(sys.input_dim * time_horizon,1);
-    risk_alloc_state = nan(n_lin_state, 1);
+    results.lb_stoch_reach = -1;
+    results.opt_input_vec = nan(sys.InputDimension * N, 1);
+    results.risk_alloc_state = nan(n_lin_state, 1);
 end
 
 %% Create the other info for use if necessary
-n_fixed_outputs = 3;
-if nargout == n_fixed_outputs + 1
-    extra_info.concat_safety_tube_A = concat_safety_tube_A;
-    extra_info.concat_safety_tube_b = concat_safety_tube_b;
-    extra_info.concat_input_space_A = concat_input_space_A;
-    extra_info.concat_input_space_b = concat_input_space_b;
-    extra_info.H = H;
-    extra_info.mean_X_sans_input = mean_X_sans_input;
-    extra_info.cov_X_sans_input = cov_X_sans_input;
-    varargout{1} = extra_info;
-elseif nargout > n_fixed_outputs
-    throw(SrtRuntimeError('Too many output arguments'));
-end
+results.extra_info.concat_safety_tube_A = concat_safety_tube_A;
+results.extra_info.concat_safety_tube_b = concat_safety_tube_b;
+results.extra_info.concat_input_space_A = concat_input_space_A;
+results.extra_info.concat_input_space_b = concat_input_space_b;
+results.extra_info.H = H;
+results.extra_info.mean_X_sans_input = mean_X_sans_input;
+results.extra_info.cov_X_sans_input = cov_X_sans_input;
 
 end

@@ -1,4 +1,4 @@
-function results = compute_point(obj, problem, sys, x0, varargin)
+function results = compute_point(obj, prob, sys, x0, varargin)
 % COMPUTE_POINT Computes a point solution for the ChanceAffine algorithm.
 %
 %   results = COMPUTE_POINT(obj, problem, sys, x0)
@@ -53,32 +53,23 @@ function results = compute_point(obj, problem, sys, x0, varargin)
 %   License for the use of this algorithm is given in
 %   https://sreachtools.github.io/license/
 
-% p = inputParser;
-% addRequired(p, 'problem', @obj.validateproblem);
-% addRequired(p, 'sys', @obj.validatesystem);
-% addRequired(p, 'x0');
-% parse(p, problem, sys, x0);
-
 p = inputParser;
-addRequired(p, 'problem', @obj.validateproblem);
+addRequired(p, 'prob', @obj.validateproblem);
 addRequired(p, 'sys', @obj.validatesystem);
 addRequired(p, 'x0');
-parse(p, problem, sys, x0, varargin{:});
+parse(p, prob, sys, x0, varargin{:});
 
 results = struct;
 
 import srt.*
 
-% results.lb_stoch_reach, results.opt_input_vec, results.opt_input_gain, results.risk_alloc_state, ...
-    % results.risk_alloc_input
-
 % Target tubes has polyhedra T_0, T_1, ..., T_{N}
-N = problem.TimeHorizon - 1;
+N = prob.TimeHorizon - 1;
 
 % Get half space representation of the target tube and time horizon
 % skipping the first time step
 [concat_safety_tube_A, concat_safety_tube_b] = ...
-    problem.TargetTube.concatenate([2 N+1]);
+    prob.TargetTube.concatenate([2 N+1]);
 
 %% Halfspace-representation of U^N, H, G,mean_X_sans_input, cov_X_sans_input
 % GUARANTEES: Non-empty input sets (polyhedron)
