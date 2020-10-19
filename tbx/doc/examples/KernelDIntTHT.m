@@ -20,17 +20,15 @@ problem = srt.problems.TerminalHitting('ConstraintTube', K, 'TargetTube', T);
 % $$x_{k+1} = A x_{k} + w_{k}, \quad w_{k} \sim \mathcal{N}(0, 0.01 I)$$
 %
 
-% s = linspace(-1.1, 1.1, 5);
-% X = sampleunif(s, s);
-% U = zeros(1, size(X, 2));
-% W = 0.01.*randn(size(X));
-%
-% A = [1, 0.25; 0, 1];
-% B = [0.03125; 0.25];
-%
-% Y = A*X + B*U + W;
+s = linspace(-1.1, 1.1, 5);
+X = sampleunif(s, s);
+U = zeros(1, size(X, 2));
+W = 0.01.*randn(size(X));
 
-X = [data1 data2 data3 data4];
+A = [1, 0.25; 0, 1];
+B = [0.03125; 0.25];
+
+Y = A*X + B*U + W;
 
 %%
 % Create a sample-based stochastic system.
