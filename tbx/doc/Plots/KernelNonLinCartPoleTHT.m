@@ -19,7 +19,7 @@ problem = srt.problems.TerminalHitting('ConstraintTube', K, 'TargetTube', T);
 load('..\data\CartPoleSamples_Nonlinear.mat');
 
 % Select 5000 samples from the data.
-indices = randperm(size(X, 2), 6000);
+indices = randperm(size(X, 2), 5000);
 X = X(:, indices);
 Y = Y(:, indices);
 U = zeros(1, size(X, 2));
@@ -50,9 +50,30 @@ results = SReachPoint(problem, alg, sys, Xt, Ut);
 
 %%
 % View the results.
-figure(1)
-surf(s, s, reshape(results.Pr(N-1, :), 100, 100), 'EdgeColor', 'none');
-figure(2)
-surf(s, s, reshape(results.Pr(N-3, :), 100, 100), 'EdgeColor', 'none');
-figure(3)
-surf(s, s, reshape(results.Pr(N-99, :), 100, 100), 'EdgeColor', 'none');
+
+width = 80;
+height = 100;
+
+figure('Units', 'points', ...
+       'Position', [0, 0, 200, 150])
+
+ax = axes; %subplot(1, 5, [1, 2], 'Units', 'points');
+ax.Units = 'points';
+data = reshape(results.Pr(N-1, :), 100, 100);
+ph = surf(ax, s, s, data);
+ph.EdgeColor = 'none';
+caxis([0 1]);
+view(2);
+ax.Color = 'none';
+
+colorbar(ax, 'off');
+ax.Position = [40, 25, width*1.5, height];
+ax.XLabel.Interpreter = 'latex';
+ax.XLabel.String = '$\theta$';
+ax.YLabel.Interpreter = 'latex';
+ax.YLabel.String = '$\dot{\theta}$';
+ax.Title.String = '(a)';
+set(ax, 'FontSize', 8);
+
+saveas(gcf,'.\images\KernelNonLinCartPoleTHT','eps')
+saveas(gcf,'.\images\KernelNonLinCartPoleTHT','fig')

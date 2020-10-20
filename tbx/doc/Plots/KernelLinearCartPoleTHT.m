@@ -51,100 +51,29 @@ results = SReachPoint(problem, alg, sys, Xt, Ut);
 %%
 % View the results.
 
-surf(s, s, reshape(results.Pr(N-3, :), 100, 100), 'EdgeColor', 'none');
+width = 80;
+height = 100;
 
-% width = 80;
-% height = 115;
-% gap = 10;
-% 
-% figure('Units', 'points', ...
-%        'Position', [0, 0, 504, 150])
-% 
-% ax1 = subplot(1, 5, [1, 2], 'Units', 'points');
-% data = reshape(Pr(N-3, :), 100, 100);
-% ph = surf(ax1, s, s, data);
-% ph.EdgeColor = 'none';
-% caxis([0 1]);
-% view([-30 45]);
-% 
-% % ax1.XGrid = 'off';
-% % ax1.YGrid = 'off';
-% % ax1.ZGrid = 'off';
-% ax1.Color = 'none';
-% 
-% colorbar(ax1, 'off');
-% ax1.Position = [40, 25, width*1.5, height];
-% ax1.XLabel.Interpreter = 'latex';
-% ax1.XLabel.String = '$\theta$';
-% ax1.YLabel.Interpreter = 'latex';
-% ax1.YLabel.String = '$\dot{\theta}$';
-% ax1.Title.String = '(a)';
-% set(ax1, 'FontSize', 8);
-% 
-% % ax2 = subplot(1, 5, 2, 'Units', 'points');
-% % data = reshape(Pr(N-1, :), 100, 100);
-% % ph = surf(ax2, s, s, data);
-% % ph.EdgeColor = 'none';
-% % caxis([0 1]);
-% % view([0 90]);
-% % 
-% % colorbar(ax2, 'off');
-% % % ax2.YAxis.Visible = 'off';
-% % ax2.Position = [120, 25, width, height];
-% % ax2.YLabel.Interpreter = 'latex';
-% % ax2.YLabel.String = '$x_{2}$';
-% % ax2.Title.String = '(b)';
-% % set(ax2, 'FontSize', 8);
-% 
-% ax3 = subplot(1, 5, 3, 'Units', 'points');
-% % data = reshape(Pr(1, :), 100, 100);
-% data = reshape(Pr(N-3, :), 100, 100);
-% ph = surf(ax3, s, s, data);
-% ph.EdgeColor = 'none';
-% caxis([0 1]);
-% view([0 90]);
-% 
-% colorbar(ax3, 'off');
-% % ax3.YAxis.Visible = 'off';
-% ax3.Position = [120 + 1*(width + gap), 25, width, height];
-% ax3.YLabel.Interpreter = 'latex';
-% ax3.YLabel.String = '$\dot{\theta}$';
-% ax3.Title.String = '(b)';
-% 
-% set(ax3, 'FontSize', 8);
-% 
-% %
-% 
-% ax4 = subplot(1, 5, 4, 'Units', 'points');
-% data = reshape(Pr(N-3, :), 100, 100) + reshape(UB(N-3, :), 100, 100);
-% ph = surf(ax4, s, s, data);
-% ph.EdgeColor = 'none';
-% caxis([0 1]);
-% view([0 90]);
-% 
-% colorbar(ax4, 'off');
-% ax4.YAxis.Visible = 'off';
-% ax4.Position = [120 + 2*(width + gap), 25, width, height];
-% ax4.YLabel.Interpreter = 'latex';
-% ax4.YLabel.String = '$x_{2}$';
-% ax4.Title.String = '(c)';
-% 
-% ax4.XLabel.Interpreter = 'latex';
-% ax4.XLabel.String = '$\theta$';
-% 
-% set(ax4, 'FontSize', 8);
-% 
-% ax5 = subplot(1, 5, 5, 'Units', 'points');
-% data = reshape(Pr(N-3, :), 100, 100) + reshape(LB(N-3, :), 100, 100);
-% ph = surf(ax5, s, s, data);
-% ph.EdgeColor = 'none';
-% caxis([0 1]);
-% view([0 90]);
-% 
-% colorbar(ax5);
-% ax5.YAxis.Visible = 'off';
-% ax5.Position = [120 + 3*(width + gap), 25, width, height];
-% ax5.YLabel.Interpreter = 'latex';
-% ax5.YLabel.String = '$x_{2}$';
-% ax5.Title.String = '(d)';
-% set(ax5, 'FontSize', 8);
+figure('Units', 'points', ...
+       'Position', [0, 0, 200, 150])
+
+ax = axes; %subplot(1, 5, [1, 2], 'Units', 'points');
+ax.Units = 'points';
+data = reshape(results.Pr(N-3, :), 100, 100);
+ph = surf(ax, s, s, data);
+ph.EdgeColor = 'none';
+caxis([0 1]);
+view(2);
+ax.Color = 'none';
+
+colorbar(ax, 'off');
+ax.Position = [40, 25, width*1.5, height];
+ax.XLabel.Interpreter = 'latex';
+ax.XLabel.String = '$\theta$';
+ax.YLabel.Interpreter = 'latex';
+ax.YLabel.String = '$\dot{\theta}$';
+ax.Title.String = '(a)';
+set(ax, 'FontSize', 8);
+
+saveas(gcf,'.\images\KernelLinearCartPoleTHT','eps')
+saveas(gcf,'.\images\KernelLinearCartPoleTHT','fig')
