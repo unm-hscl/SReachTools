@@ -9,7 +9,7 @@ classdef TerminalHitting < srt.problems.Problem
 
     methods
 
-        function obj = TerminalHitting(options)
+        function obj = TerminalHitting(varargin)
             % TERMINALHITTING Construct an instance of the problem.
 
             p = inputParser;

@@ -8,7 +8,7 @@ classdef Viability < srt.problems.Problem
 
     methods
 
-        function obj = Viability(options)
+        function obj = Viability(varargin)
             % VIABILITY Construct an instance of the problem.
 
             p = inputParser;
