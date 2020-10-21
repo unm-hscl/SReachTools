@@ -54,7 +54,7 @@ methods (TestMethodSetup)
 
 end
 
-methods (Test)
+methods (Test, TestTags = {'NoGurobi'})
 
     function profileChanceAffine(testCase)
         % Compute the safety probabilities.
@@ -137,7 +137,7 @@ methods (Test)
         U = zeros(1, size(X, 2));
 
         W = 0.01.*randn(size(X));
-        
+
         Y = A*X + B*U + W;
 
         args = {'X', X, 'U', U, 'Y', Y};
@@ -170,7 +170,7 @@ methods (Test)
         U = zeros(1, size(X, 2));
 
         W = 0.01.*randn(size(X));
-        
+
         Y = A*X + B*U + W;
 
         args = {'X', X, 'U', U, 'Y', Y};
@@ -189,6 +189,10 @@ methods (Test)
         testCase.stopMeasuring();
 
     end
+
+end
+
+methods (Test)
 
     function profileParticleOpen(testCase)
         % Compute the safety probabilities.
