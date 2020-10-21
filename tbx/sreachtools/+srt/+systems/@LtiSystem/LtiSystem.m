@@ -2,6 +2,7 @@ classdef LtiSystem < srt.systems.LtvSystem
     methods
         function obj = LtiSystem(varargin)
             p = inputParser();
+            p.KeepUnmatched = true;
             addOptional(p, 'A', [], @(x) validateattributes(x, ...
                 {'numeric'}, {'square'}));
             addOptional(p, 'B', [], @(x) isa(x, 'numeric'));
@@ -12,8 +13,9 @@ classdef LtiSystem < srt.systems.LtvSystem
             parse(p, varargin{:});
 
 
-            obj@srt.systems.LtvSystem(p.Results.A, p.Results.B, ...
-                p.Results.F, p.Results.w)
+            obj@srt.systems.LtvSystem(varargin{:});
+            % obj@srt.systems.LtvSystem(p.Results.A, p.Results.B, ...
+            %     p.Results.F, p.Results.w)
         end
 
         function val = StateMatrix(obj, ~)
@@ -45,7 +47,7 @@ classdef LtiSystem < srt.systems.LtvSystem
         function valid = validateDisturbanceMatrix(F)
             if (isa(F, 'numeric') && length(size(F)) == 2) || ...
                 (isa(F, 'char') && any(strcmp(F, {'InputMatrix', 'B'})))
-                
+
                 valid = true;
             else
                 error(sprintf(['Expected input to be one of these types:\n\n', ...

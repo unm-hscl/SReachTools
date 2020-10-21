@@ -1,10 +1,10 @@
-function results = compute_point(obj, problem, sys, x0, varargin)
+function results = compute_point(obj, prob, sys, x0, varargin)
 
 p = inputParser;
-addRequired(p, 'problem', @obj.validateproblem);
+addRequired(p, 'prob', @obj.validateproblem);
 addRequired(p, 'sys', @obj.validatesystem);
 addRequired(p, 'x0');
-parse(p, problem, sys, x0, varargin{:});
+parse(p, prob, sys, x0, varargin{:});
 
 % 1. Ensure that the system is a Gaussian-perturbed LtiSystem
 % 2. Ensure that the state dim, input_dim <=4

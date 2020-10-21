@@ -9,23 +9,26 @@ classdef FirstHitting < srt.problems.Problem
 
     methods
 
-        function obj = FirstHitting(options)
+        function obj = FirstHitting(varargin)
             % FIRSTHITTING Construct an instance of the problem.
 
-            arguments
-                options.ConstraintTube (1, 1) srt.Tube
-                options.TargetTube (1, 1) srt.Tube
-            end
+            p = inputParser;
+            p.KeepUnmatched = true;
+
+            addParameter(p, 'ConstraintTube', srt.Tube.empty);
+            addParameter(p, 'TargetTube', srt.Tube.empty);
+
+            parse(p, varargin{:});
 
             obj = obj@srt.problems.Problem();
 
             % Ensure T in K?
 
-            assert(length(options.ConstraintTube) == ...
-                   length(options.TargetTube));
+            assert(length(p.Results.ConstraintTube) == ...
+                   length(p.Results.TargetTube));
 
-            obj.TargetTube = options.TargetTube;
-            obj.ConstraintTube = options.ConstraintTube;
+            obj.TargetTube = p.Results.TargetTube;
+            obj.ConstraintTube = p.Results.ConstraintTube;
 
         end
 

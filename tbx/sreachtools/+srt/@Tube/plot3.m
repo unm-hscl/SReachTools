@@ -1,4 +1,4 @@
-function ph = plot(obj, ax)
+function ph = plot3(obj, ax)
 
 if isempty(ax)
     ax = gca

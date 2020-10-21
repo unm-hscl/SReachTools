@@ -132,7 +132,7 @@ function [Z,H,G] = getConcatMats(sys, time_horizon)
             row_for_G = zeros(sys.StateDimension, sys.DisturbanceDimension * time_horizon);
             for sub_indx = 1:t_indx
 
-                dist_matrix_temp = sys.dist_mat;
+                dist_matrix_temp = sys.DisturbanceMatrix;
 
                 row_for_G(:, ...
                     (sub_indx-1)*sys.DisturbanceDimension + 1: sub_indx*sys.DisturbanceDimension) = ...
@@ -151,7 +151,7 @@ function prod_state_mat = computeMatProductsStateMat(sys, t, tau)
     prod_state_mat = eye(sys.StateDimension);
 
     if t<tau
-        prod_state_mat = sys.state_mat^(tau-t);
+        prod_state_mat = sys.StateMatrix^(tau-t);
     else
         % Return identity
     end

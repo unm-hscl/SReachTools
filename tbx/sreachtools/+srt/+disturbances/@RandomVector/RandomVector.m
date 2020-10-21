@@ -76,7 +76,7 @@ classdef RandomVector
     %             error(['Sample function is not valid. Sampling functions ', ...
     %                 'must return vectors (nx1).']);
     %         end
-            
+
     %         obj.n_ = size(s, 1);
     %     end
     % end

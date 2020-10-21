@@ -1,19 +1,9 @@
-function validatesystem(obj, sys)
+function validatesystem(obj, system)
 % VALIDATESYSTEM Validate system.
 
-% Must not be random vector.
-% Must have Gaussian disturbance.
+supportedSystems = {'srt.systems.LtiSystem', ...
+                    'srt.systems.LtvSystem'};
 
-% 1. Get the correct options
-% 2. Check if the system is stochastic
-% 3. Check if the random vector is Gaussian
-
-% if ~isa(sys.dist,'RandomVector')
-%     throwAsCaller(SrtInvalidArgsError('Expected a stochastic system'));
-% end
-% if ~strcmpi(sys.dist.type,'Gaussian')
-%     throw(SrtInvalidArgsError(['SReachPointCcO requires Gaussian-',...
-%         'perturbed LTV/LTI system']));
-% end
+validateattributes(system, supportedSystems, {'scalar', 'nonempty'});
 
 end
