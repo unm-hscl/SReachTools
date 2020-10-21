@@ -11,13 +11,16 @@ classdef Viability < srt.problems.Problem
         function obj = Viability(options)
             % VIABILITY Construct an instance of the problem.
 
-            arguments
-                options.ConstraintTube (1, 1) srt.Tube
-            end
+            p = inputParser;
+            p.KeepUnmatched = true;
+
+            addParameter(p, 'ConstraintTube', srt.Tube.empty);
+
+            parse(p, varargin{:});
 
             obj = obj@srt.problems.Problem();
 
-            obj.ConstraintTube = options.ConstraintTube;
+            obj.ConstraintTube = p.Results.ConstraintTube;
 
         end
 

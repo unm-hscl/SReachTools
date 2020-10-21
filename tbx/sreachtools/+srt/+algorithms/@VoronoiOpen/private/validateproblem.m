@@ -1,9 +1,8 @@
 function validateproblem(obj, problem)
 % VALIDATEPROBLEM Validate problem.
 
-arguments
-    obj
-    problem (1, 1) srt.problems.TerminalHitting {mustBeNonempty}
-end
+supportedProblems = {'srt.problems.TerminalHitting'};
+
+validateattributes(problem, supportedProblems, {'scalar', 'nonempty'});
 
 end

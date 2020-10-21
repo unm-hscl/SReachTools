@@ -46,7 +46,7 @@
 %   fht           - Create a first-hitting time problem.
 %   mht           - Create a maximal-hitting time problem.
 %   tht           - Create a terminal-hitting time problem.
-%   viability          - Create a viability problem.
-%   srtinit            - Initialization function
-%   validatesystem     - Validate system object.
-%   validatetargettube - Validate target tube object.
+%   viability     - Create a viability problem.
+%   srtinit       - Initialization function
+%   sampleunif    - Generate uniform samples.
+%   tube          - Create a set tube.

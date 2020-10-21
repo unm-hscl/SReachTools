@@ -45,9 +45,19 @@ end
 
 %%
 
-figure
+figure('Units', 'points', ...
+       'Position', [0, 0, 240, 100]);
 hold on
+grid on
 plot(M, KernelEmbeddingsTime);
+ax = gca;
+ax.XLabel.String = 'Number of Samples $$M$$';
+ax.XLabel.Interpreter = 'latex';
+ax.YLabel.String = 'Computation Time [s]';
+ax.YLabel.Interpreter = 'latex';
+set(ax, 'FontSize', 8);
+yticks([0, 0.2, 0.4, 0.6, 0.8])
+xlim([100 2500]);
 hold off
 
 %%

@@ -1,4 +1,4 @@
-function validate_dependencies(obj)
+function validatedependencies(obj)
 % VALIDATE_DEPENDENCIES Checks if algorithm dependencies are present/valid.
 
 % Requires CVX.

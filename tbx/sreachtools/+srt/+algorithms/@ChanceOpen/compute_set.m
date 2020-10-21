@@ -1,4 +1,4 @@
-function results = compute_set(obj, problem, sys, varargin)
+function results = compute_set(obj, prob, sys, varargin)
 % Compute the stochastic reach set corresponding to the stochastic reachability
 % problem of a target tube using convex chance-constraint optimization
 % =============================================================================
@@ -100,10 +100,14 @@ function results = compute_set(obj, problem, sys, varargin)
 %
 
 p = inputParser;
-addRequired(p, problem, @obj.validateproblem);
-addRequired(p, sys, @obj.validatesystem);
-parse(p, problem, sys);
+addRequired(p, 'prob', @obj.validateproblem);
+addRequired(p, 'sys', @obj.validatesystem);
+addRequired(p, 'x0');
+parse(p, prob, sys, x0, varargin{:});
 
+results = struct;
+
+import srt.*
 
 % Construct the constrained initial safe set
 init_safe_set = Polyhedron('H', safety_tube(1).H, ...
