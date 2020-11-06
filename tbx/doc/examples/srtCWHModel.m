@@ -10,7 +10,7 @@ EARTH_RADIUS = 6378.1;
 EARTH_MASS = 5.9472e24;
 
 p = inputParser();
-addOptional(p, 'Ts');
+addOptional(p, 'Ts', 20);
 % addParameter(p, 'SamplingTime', [], @(x) validateattributes(x, ...
     % {'numeric'}, {'scalar', 'positive', 'real'}));
 addParameter(p, 'OrbitalRadius', EARTH_RADIUS);
@@ -29,9 +29,14 @@ addParameter(p, 'DisturbanceMatrix', []);
 
 parse(p, Ts, varargin{:});
 
+InputSpace = p.Results.InputSpace;
 
 Disturbance = p.Results.Disturbance;
 DisturbanceMatrix = p.Results.DisturbanceMatrix;
+
+if isempty(DisturbanceMatrix)
+    DisturbanceMatrix = eye(p.Results.Dimensionality);
+end
 
 Mu = G*p.Results.CelestialBodyMass/(1000^3);
 n = sqrt(Mu/(p.Results.OrbitalRadius^3));
@@ -82,17 +87,18 @@ eAt = @(t) [
 A = eAt(Ts);
 
 % Continuous-time input matrix B_{cts}
-B_cts = 1 / deputy_mass * [zeros(3); eye(3)];
+B_cts = 1 / p.Results.DeputyMass * [zeros(3); eye(3)];
 
 % Discrete-time input matrix is (\int_0^T e^{A_{cts}\tau} d\tau) B_cts
 B = integral(eAt, 0, Ts, 'ArrayValued', true) * B_cts;
 
-if p.Results.Dimension == 4
+if p.Results.Dimensionality == 4
     % reduce matrices
     A = A([1:2, 4:5], [1:2, 4:5]);
     B = B([1:2, 4:5], 1:2);
 end
 
-sys = srt.systems.LtiSystem(A, B, DisturbanceMatrix, Disturbance);
+sys = srt.systems.LtiSystem(A, B, DisturbanceMatrix, Disturbance, ...
+        'InputSpace', InputSpace);
 
 end

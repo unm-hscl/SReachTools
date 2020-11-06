@@ -1,7 +1,7 @@
 function ph = plot(obj, ax)
 
-if isempty(ax)
-    ax = gca
+if nargin == 1
+    ax = gca;
 end
 
 next = ax.NextPlot;
